@@ -93,6 +93,8 @@ __published:
 	TMenuItem *N2;
 	TMenuItem *CopyItem;
 	TMenuItem *CopyValueItem;
+	TMenuItem *Help1;
+	TMenuItem *AboutItem;
 
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall FormDestroy(TObject *Sender);
@@ -138,6 +140,8 @@ __published:
 	void __fastcall EditSrcActionUpdate(TObject *Sender);
 	void __fastcall CopyActionUpdate(TObject *Sender);
 	void __fastcall CopyValActionUpdate(TObject *Sender);
+	void __fastcall AboutItemClick(TObject *Sender);
+	void __fastcall PropListBoxClick(TObject *Sender);
 
 private:
 	TIniFile *IniFile;

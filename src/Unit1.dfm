@@ -121,6 +121,7 @@ object DfmViewerForm: TDfmViewerForm
             ParentFont = False
             PopupMenu = PopupMenu1
             TabOrder = 3
+            OnClick = PropListBoxClick
             OnDblClick = PropListBoxDblClick
             OnDrawItem = PropListBoxDrawItem
             OnKeyDown = PropListBoxKeyDown
@@ -267,7 +268,7 @@ object DfmViewerForm: TDfmViewerForm
           DefaultDrawing = False
           DoubleBuffered = False
           FixedCols = 2
-          Options = [goFixedVertLine, goVertLine, goRangeSelect, goColSizing, goThumbTracking]
+          Options = [goFixedVertLine, goVertLine, goColSizing, goRowSelect, goThumbTracking]
           ParentDoubleBuffered = False
           TabOrder = 0
           StyleElements = [seBorder]
@@ -445,6 +446,13 @@ object DfmViewerForm: TDfmViewerForm
       object OptionsItem: TMenuItem
         Caption = '&Options...'
         OnClick = OptionBtnClick
+      end
+    end
+    object Help1: TMenuItem
+      Caption = 'Help'
+      object AboutItem: TMenuItem
+        Caption = '&About...'
+        OnClick = AboutItemClick
       end
     end
   end

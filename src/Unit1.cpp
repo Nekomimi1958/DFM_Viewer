@@ -19,6 +19,7 @@
 #include "usr_file_ex.h"
 #include "UserFunc.h"
 #include "OptDlg.h"
+#include "About.h"
 #include "Unit1.h"
 
 //---------------------------------------------------------------------------
@@ -371,7 +372,7 @@ void __fastcall TDfmViewerForm::InitObjFile(UnicodeString fnam)
 
 				if (!cur_path.IsEmpty()) cur_path += "\\";
 				cur_path += lbuf;
-				p_lst->Insert(0, "Path=" + cur_path);
+				p_lst->Insert(0, "ObjectPath=" + cur_path);
 				p_lst->Insert(0, tmp.sprintf(_T("FormFile=%s\t(%u)"), fnam.c_str(), i + 1));
 
 				if (SameStr(cls, "TPageControl")) {
@@ -389,7 +390,7 @@ void __fastcall TDfmViewerForm::InitObjFile(UnicodeString fnam)
 				cur_path = ExtractFileDir(cur_path);
 			}
 			else if (p_lst) {
-				UnicodeString knam = Trim(get_tkn(lbuf, '='));
+				UnicodeString vnam = Trim(get_tkn(lbuf, '='));
 				UnicodeString vstr = Trim(get_tkn_r(lbuf, '='));
 				if (vstr=="(") {
 					skip1 = true;
@@ -412,10 +413,10 @@ void __fastcall TDfmViewerForm::InitObjFile(UnicodeString fnam)
 				else if (skip1 || skip2 || skip3) {
 					continue;
 				}
-				else if (!knam.IsEmpty() && !vstr.IsEmpty()) {
-					p_lst->Add(knam + "=" + conv_ValText(vstr));
-					if (PropNameList->IndexOf(knam)==-1) PropNameList->Add(knam);
-					MaxPrpWidth = std::max(ObjListBox->Canvas->TextWidth(knam), MaxPrpWidth);
+				else if (!vnam.IsEmpty() && !vstr.IsEmpty()) {
+					p_lst->Add(vnam + "=" + conv_ValText(vstr));
+					if (PropNameList->IndexOf(vnam)==-1) PropNameList->Add(vnam);
+					MaxPrpWidth = std::max(ObjListBox->Canvas->TextWidth(vnam), MaxPrpWidth);
 				}
 			}
 		}
@@ -479,7 +480,7 @@ void __fastcall TDfmViewerForm::UpdateObjList(
 	int act_cnt = 0;
 	for (int i=top_idx; i<=end_idx; i++) {
 		TStringList  *plst = (TStringList *)ObjItemList->Objects[i];
-		if (SameStr(pnam, ExtractFileDir(plst->Values["Path"]))) {
+		if (SameStr(pnam, ExtractFileDir(plst->Values["ObjectPath"]))) {
 			if (is_act_lst) {
 				act_cnt++;
 				UnicodeString ctg = plst->Values["Category"];
@@ -516,7 +517,7 @@ void __fastcall TDfmViewerForm::UpdateObjList(
 	if (!CurrPath.IsEmpty()) {
 		TStringList *plst = new TStringList();
 		plst->Add("Name=" + ExtractFileName(pnam));
-		plst->Add("Path=" + pnam);
+		plst->Add("ObjectPath=" + pnam);
 		plst->Add(UnicodeString().sprintf(_T("ControlCount=%u"), o_lst->Count));
 		o_lst->InsertObject(0, pnam + "\\..", (TObject*)plst);
 	}
@@ -798,8 +799,9 @@ void __fastcall TDfmViewerForm::ObjListBoxKeyDown(TObject *Sender, WORD &Key, TS
 			}
 		}
 	}
-	else if (SameText(KeyStr, "L")) {
+	else if (SameText(KeyStr, "L") || SameText(KeyStr, "RIGHT")) {
 		if (ViewPageControl->ActivePage==TextSheet) TextListBox->SetFocus();
+		Key = 0;
 	}
 }
 //---------------------------------------------------------------------------
@@ -878,15 +880,15 @@ void __fastcall TDfmViewerForm::PropListBoxDrawItem(TWinControl *Control, int In
 	int yp = Rect.Top + 1;
 
 	UnicodeString lbuf = lp->Items->Strings[Index];
-	UnicodeString knam = split_tkn(lbuf, "=");
+	UnicodeString vnam = split_tkn(lbuf, "=");
 	cv->Font->Color = GetOptCol("fgName");
-	cv->TextOut(xp + MaxPrpWidth - cv->TextWidth(knam) - 12, yp, knam);
+	cv->TextOut(xp + MaxPrpWidth - cv->TextWidth(vnam) - 12, yp, vnam);
 
 	if (!lbuf.IsEmpty()) {
-		if (SameStr(knam, "Path")) {
+		if (SameStr(vnam, "ObjectPath")) {
 			lbuf = ReplaceStr(ExtractFileDir(lbuf), "\\", "/");
 		}
-		else if (SameStr(knam, "FormFile")) {
+		else if (SameStr(vnam, "FormFile")) {
 			lbuf = ExtractFileName(ReplaceStr(lbuf, "\t", " "));
 		}
 
@@ -905,6 +907,39 @@ void __fastcall TDfmViewerForm::PropListBoxDrawItem(TWinControl *Control, int In
 	draw_ListCursor(lp, Rect, Index, State, GetOptCol("LnCurs"), 2);
 }
 //---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::PropListBoxClick(TObject *Sender)
+{
+	TListBox *p_lp = PropListBox;
+	if (p_lp->ItemIndex!=-1) {
+		UnicodeString vnam = get_tkn(p_lp->Items->Strings[p_lp->ItemIndex], "=");
+		UnicodeString lbuf = p_lp->Items->Values["FormFile"];
+		UnicodeString fnam = get_pre_tab(lbuf);
+		if (ViewPageControl->ActivePage==TextSheet && SameStr(fnam, DfmFileName)) {
+			int lno = get_in_paren(get_post_tab(lbuf)).ToIntDef(1);
+			int idx = -1;
+			TListBox *t_lp = TextListBox;
+			if (contained_wd_i("FormFile|ObjectPath|Class|Name", vnam)) {
+				idx = lno - 1;
+			}
+			else {
+				for (int i=lno; i<t_lp->Count; i++) {
+					UnicodeString lbuf = Trim(t_lp->Items->Strings[i]);
+					if (SameText(get_tkn(lbuf, " "), "object")) break;
+					if (lbuf.Pos("=") && SameStr(vnam, Trim(get_tkn(lbuf, "=")))) {
+						idx = i;
+						break;
+					}
+				}
+			}
+
+			if (idx!=-1) {
+				ListBoxSetIndex(t_lp, idx);
+				t_lp->Invalidate();
+			}
+		}
+	}
+}
+//---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::PropListBoxKeyDown(TObject *Sender, WORD &Key,
 	TShiftState Shift)
 {
@@ -912,11 +947,11 @@ void __fastcall TDfmViewerForm::PropListBoxKeyDown(TObject *Sender, WORD &Key,
 	int idx = lp->ItemIndex;
 	if (idx==-1) return;
 	UnicodeString lbuf = lp->Items->Strings[idx];
-	UnicodeString knam = split_tkn(lbuf, "=");
+	UnicodeString vnam = split_tkn(lbuf, "=");
 
 	UnicodeString KeyStr = get_KeyStr(Key, Shift);
 	if (equal_ENTER(KeyStr)) {
-		if (contained_wd_i(_T("PopupMenu|Action"), knam)) {
+		if (contained_wd_i(_T("PopupMenu|Action"), vnam)) {
 			UnicodeString rnam = IncludeTrailingPathDelimiter(get_tkn(CurrPath, "\\"));
 			for (int i=0; i<ObjItemList->Count; i++) {
 				UnicodeString onam = ObjItemList->Strings[i];
@@ -926,7 +961,7 @@ void __fastcall TDfmViewerForm::PropListBoxKeyDown(TObject *Sender, WORD &Key,
 				}
 			}
 		}
-		else if (SameStr(knam, "FormFile")) {
+		else if (SameStr(vnam, "FormFile")) {
 			TListBox *lp = TextListBox;
 			try {
 				ViewPageControl->ActivePage = TextSheet;
@@ -955,6 +990,10 @@ void __fastcall TDfmViewerForm::PropListBoxKeyDown(TObject *Sender, WORD &Key,
 	else if (SameText(KeyStr, "N")) {
 		Key = VK_NEXT;
 	}
+	else if (SameText(KeyStr, "L") || SameText(KeyStr, "RIGHT")) {
+		if (ViewPageControl->ActivePage==TextSheet) TextListBox->SetFocus();
+		Key = 0;
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::PropListBoxKeyPress(TObject *Sender, System::WideChar &Key)
@@ -973,7 +1012,7 @@ void __fastcall TDfmViewerForm::GetOffPos(int idx, int *x, int*y)
 	if (idx==-1) return;
 
 	TStringList *plst = (TStringList *)ObjItemList->Objects[idx];
-	if (ExtractFileDir(plst->Values["Path"]).IsEmpty()) {
+	if (ExtractFileDir(plst->Values["ObjectPath"]).IsEmpty()) {
 		if (!SameStr(plst->Values["BorderStyle"], "bsNone")) {
 			*y += (CtlFontHi + 8);
 		}
@@ -1015,7 +1054,7 @@ TRect __fastcall TDfmViewerForm::GetObjRect(int idx)
 			GetOffPos(idx, &ofs_x, &ofs_y);
 
 			int l = 0, t = 0;
-			if (!ExtractFileDir(plst->Values["Path"]).IsEmpty()) {
+			if (!ExtractFileDir(plst->Values["ObjectPath"]).IsEmpty()) {
 				l = plst->Values["Left"].ToIntDef(0);
 				t = plst->Values["Top"].ToIntDef(0);
 			}
@@ -1049,9 +1088,9 @@ void __fastcall TDfmViewerForm::DrawControl(
 
 	cv->Font->Size = FrameRatio * 8;
 	int f_hi = cv->TextHeight("Q");
-	int mgn  = 2 * FrameRatio;
+	int mgn  = std::max((int)(2 * FrameRatio), 1);
 
-	bool has_tit = ExtractFileDir(plst->Values["Path"]).IsEmpty() && !SameStr(plst->Values["BorderStyle"], "bsNone");
+	bool has_tit = ExtractFileDir(plst->Values["ObjectPath"]).IsEmpty() && !SameStr(plst->Values["BorderStyle"], "bsNone");
 	bool active  = SameText(onam, ActivePath);
 
 	bool is_comobox   = SameStr(cls, "TComboBox");
@@ -1122,6 +1161,8 @@ void __fastcall TDfmViewerForm::DrawControl(
 				(is_label || is_labeledit || is_button || is_groupbox || is_radiobtn)?
 							 			   cpt.c_str() : _T("");
 			if (!s.IsEmpty()) {
+				std::unique_ptr<TStringList> sbuf(new TStringList());
+				sbuf->Text = ReplaceStr(s, "\\r\\n", "\n");
 				int xp,yp;
 				if (is_labeledit) {
 					UnicodeString lpos = plst->Values["LabelPosition"];
@@ -1140,17 +1181,24 @@ void __fastcall TDfmViewerForm::DrawControl(
 						yp = ct_rc.Top - f_hi - mgn;
 				}
 				else {
-					xp = is_comobox ? (ct_rc.Right - cv->TextWidth(s) - 2 * FrameRatio) :
-						  is_button ? (ct_rc.Left + (ct_rc.Width() - cv->TextWidth(s)) /2) :
-						is_groupbox ? (ct_rc.Left + 8 * FrameRatio)
-								    : (ct_rc.Left + 2 * FrameRatio);
+					UnicodeString al = plst->Values["Alignment"];
+					xp = (is_comobox || SameStr(al, "taRightJustify"))?
+									(ct_rc.Right - cv->TextWidth(s) - mgn) :
+						 (is_button || SameStr(al, "taCenter"))?
+						 			(ct_rc.Left + (ct_rc.Width() - cv->TextWidth(s)) /2) :
+					  is_groupbox ?	(ct_rc.Left + mgn * 4)
+								  :	(ct_rc.Left + mgn);	
+
 					yp = is_groupbox? ct_rc.Top
-								    : ct_rc.Top + (ct_rc.Height() - f_hi) / 2;
+								    : ct_rc.Top + (ct_rc.Height() - (f_hi * sbuf->Count)) / 2;
 				}
 
 				cv->Brush->Color = cv->Pixels[xp + 1][yp + 1];
 				cv->Font->Color  = GetOptCol("fgLabl");
-				cv->TextOut(xp, yp, s);
+				for (int i=0; i<sbuf->Count; i++) {
+					cv->TextOut(xp, yp, sbuf->Strings[i]);
+					yp += f_hi;
+				}
 			}
 		}
 	}
@@ -1370,8 +1418,9 @@ void __fastcall TDfmViewerForm::TextListBoxKeyDown(TObject *Sender, WORD &Key,
 	else if (SameText(KeyStr, "N")) {
 		Key = VK_NEXT;
 	}
-	else if (SameText(KeyStr, "H")) {
+	else if (SameText(KeyStr, "H") || SameText(KeyStr, "LEFT")) {
 		ObjListBox->SetFocus();
+		Key = 0;
 	}
 }
 //---------------------------------------------------------------------------
@@ -1768,6 +1817,14 @@ void __fastcall TDfmViewerForm::EditSrcActionUpdate(TObject *Sender)
 	else {
 		ap->Enabled = false;
 	}
+}
+
+//---------------------------------------------------------------------------
+//About
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::AboutItemClick(TObject *Sender)
+{
+	AboutBox->ShowModal();
 }
 //---------------------------------------------------------------------------
 

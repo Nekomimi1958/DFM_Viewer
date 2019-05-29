@@ -13,7 +13,7 @@
 extern const _TCHAR *NnVCtrls;
 
 //---------------------------------------------------------------------------
-UnicodeString conv_ValText(UnicodeString vstr, bool with_q = false);
+UnicodeString conv_ValText(UnicodeString vstr, bool add_quot = false);
 
 double GetLuminance(TColor col);
 TColor RatioCol(TColor col, float rt);

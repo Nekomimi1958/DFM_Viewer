@@ -17,9 +17,11 @@ const _TCHAR *NnVCtrls =
 		_T("THelpContents|THelpContextAction|THelpOnHelp|THelpTopicSearch");
 
 //---------------------------------------------------------------------------
+// Convert #nnnn to strings
+//---------------------------------------------------------------------------
 UnicodeString conv_ValText(
 	UnicodeString vstr,
-	bool with_q)		// (default = false)
+	bool add_quot)		// (default = false)
 {
 	UnicodeString sbuf;
 
@@ -51,7 +53,7 @@ UnicodeString conv_ValText(
 		}
 	}
 
-	if (is_str && with_q) sbuf = "\'" + sbuf + "\'";
+	if (is_str && add_quot) sbuf = "\'" + sbuf + "\'";
 	return sbuf;
 }
 

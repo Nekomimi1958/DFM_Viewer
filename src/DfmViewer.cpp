@@ -8,9 +8,9 @@
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
-USEFORM("Unit1.cpp", DfmViewerForm);
 USEFORM("OptDlg.cpp", OptionDlg);
-
+USEFORM("Unit1.cpp", DfmViewerForm);
+USEFORM("About.cpp", AboutBox);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {
@@ -20,6 +20,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 		Application->Title = "DFM Viewer";
 		Application->CreateForm(__classid(TDfmViewerForm), &DfmViewerForm);
 		Application->CreateForm(__classid(TOptionDlg), &OptionDlg);
+		Application->CreateForm(__classid(TAboutBox), &AboutBox);
 		Application->Run();
 	}
 	catch (Exception &exception) {
