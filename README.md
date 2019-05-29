@@ -1,7 +1,7 @@
 # DFM Viewer
 
 ## Overview
-DFM Viewer can check objects in DFM (Delphi form file), display forms in brief, or list objects by class.
+DFM Viewer can check objects in DFM (Delphi form file for C++Builder), display forms in brief, or list objects by class.
 
 ## Usage
 **DfmViewer.exe** `[<directory\>|<dfm_file_name>]`
