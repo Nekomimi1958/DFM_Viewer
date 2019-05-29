@@ -2,6 +2,7 @@
 // Other Functions														//
 //																		//
 //----------------------------------------------------------------------//
+#include <memory>
 #include <System.StrUtils.hpp>
 #include "usr_str.h"
 #include "UserFunc.h"
@@ -105,5 +106,29 @@ TColor AdjustColor(
 		b += (adj * (255 - b) / 255);  if (b>255) b = 255;
 	}
 	return TColor(RGB(r, g, b));
+}
+
+//---------------------------------------------------------------------------
+//長方形にアルファブレンド
+//---------------------------------------------------------------------------
+void alpha_blend_Rect(TCanvas *cv, int x, int y, int w, int h, TColor col, int alpha)
+{
+	BLENDFUNCTION blend_f;
+	blend_f.BlendOp				= AC_SRC_OVER;
+	blend_f.BlendFlags			= 0;
+	blend_f.SourceConstantAlpha = alpha;
+	blend_f.AlphaFormat			= 0;
+
+	std::unique_ptr<Graphics::TBitmap> bp_b(new Graphics::TBitmap());
+	bp_b->SetSize(8, 8);
+	bp_b->Canvas->Brush->Style = bsSolid;
+	bp_b->Canvas->Brush->Color = col;
+	bp_b->Canvas->FillRect(TRect(0, 0, 8, 8));
+	::AlphaBlend(cv->Handle, x, y, w, h, bp_b->Canvas->Handle, 0, 0, 8, 8, blend_f);
+}
+//---------------------------------------------------------------------------
+void alpha_blend_Rect(TCanvas *cv, TRect rc, TColor col, int alpha)
+{
+	alpha_blend_Rect(cv, rc.Left, rc.Top, rc.Width(), rc.Height(), col, alpha);
 }
 //---------------------------------------------------------------------------

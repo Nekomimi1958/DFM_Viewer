@@ -19,7 +19,8 @@ double GetLuminance(TColor col);
 TColor RatioCol(TColor col, float rt);
 TColor SelectWorB(TColor col, float rt = 1.0);
 TColor AdjustColor(TColor col, int adj);
+void alpha_blend_Rect(TCanvas *cv, int x, int y, int w, int h, TColor col, int alpha);
+void alpha_blend_Rect(TCanvas *cv, TRect rc, TColor col, int alpha);
 
-bool open_by_TextEditor(UnicodeString fnam, int lno = 0);
 //---------------------------------------------------------------------------
 #endif

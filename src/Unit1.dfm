@@ -266,10 +266,11 @@ object DfmViewerForm: TDfmViewerForm
           BorderStyle = bsNone
           Color = 2097152
           DefaultDrawing = False
-          DoubleBuffered = False
+          DoubleBuffered = True
           FixedCols = 2
-          Options = [goFixedVertLine, goVertLine, goColSizing, goRowSelect, goThumbTracking]
+          Options = [goFixedVertLine, goVertLine, goColSizing, goThumbTracking]
           ParentDoubleBuffered = False
+          PopupMenu = PopupMenu1
           TabOrder = 0
           StyleElements = [seBorder]
           OnClick = ResultGridClick
