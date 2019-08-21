@@ -8,9 +8,9 @@
 #include <tchar.h>
 
 //---------------------------------------------------------------------------
+USEFORM("About.cpp", AboutBox);
 USEFORM("OptDlg.cpp", OptionDlg);
 USEFORM("Unit1.cpp", DfmViewerForm);
-USEFORM("About.cpp", AboutBox);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

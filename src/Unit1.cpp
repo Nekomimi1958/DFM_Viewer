@@ -17,6 +17,7 @@
 #include "usr_key.h"
 #include "usr_ctrl.h"
 #include "usr_file_ex.h"
+#include "usr_dark.h"
 #include "UserFunc.h"
 #include "OptDlg.h"
 #include "About.h"
@@ -100,6 +101,19 @@ __fastcall TDfmViewerForm::TDfmViewerForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::FormCreate(TObject *Sender)
 {
+	org_SttBar1WndProc		= StatusBar1->WindowProc;
+	StatusBar1->WindowProc	= SttBar1WndProc;
+
+	AllowDarkMode = true;
+	InitializeDarkMode();
+
+	for (int i=0; i<MainMenu1->Items->Count; i++) {
+		SetManuOwnerDrawEvent(MainMenu1->Items->Items[i]);
+		MainMenu1->Items->Items[i]->OnAdvancedDrawItem = MainMenuAdvancedDrawItem;
+		MainMenu1->Items->Items[i]->OnMeasureItem	   = MainMenuMeasureItem;
+	}
+
+
 	IniFile = new TIniFile(ChangeFileExt(Application->ExeName, ".INI"));
 
 	DfmFileList 	= new TStringList();
@@ -156,6 +170,8 @@ void __fastcall TDfmViewerForm::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::FormShow(TObject *Sender)
 {
+	ApplyDarkMode();
+
 	load_form_pos(this, IniFile, 800,600);
 
 	UnicodeString sct = "General";
@@ -187,6 +203,9 @@ void __fastcall TDfmViewerForm::FormShow(TObject *Sender)
 	AddColorList("fgCtrl", "Control Symbol",		clSilver);
 	AddColorList("fgLabl", "Label",					clWhite);
 
+	col_bgOptTab  = clHighlight;
+	col_fgOptTab  = clHighlightText;
+
 	ObjListBox->Color  = GetOptCol("bgList");
 	PropListBox->Color = GetOptCol("bgList");
 	TextListBox->Color = GetOptCol("bgList");
@@ -216,6 +235,7 @@ void __fastcall TDfmViewerForm::FormShow(TObject *Sender)
 	}
 
 	InitResultGrid();
+	SetDarkWinTheme(this);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::FormClose(TObject *Sender, TCloseAction &Action)
@@ -244,6 +264,8 @@ void __fastcall TDfmViewerForm::FormClose(TObject *Sender, TCloseAction &Action)
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::FormDestroy(TObject *Sender)
 {
+	EndDarkMode();
+
 	ClearObjList();
 	delete ObjItemList;
 	delete DfmFileList;
@@ -438,13 +460,12 @@ void __fastcall TDfmViewerForm::InitObjFile(UnicodeString fnam)
 				MaxRect.Union(rc);
 			}
 
-			//Child count
 			int ch_cnt = 0;
 			UnicodeString onam = ObjItemList->Strings[i];
 			for (int j=i+1; j<ObjItemList->Count; j++) {
 				if (SameStr(onam, ExtractFileDir(ObjItemList->Strings[j]))) ch_cnt++;
 			}
-			plst->Insert(2,UnicodeString().sprintf(_T("ChildCount=%u"), ch_cnt));
+			if (ch_cnt>0) plst->Add(UnicodeString().sprintf(_T("ControlCount=%u"), ch_cnt));
 		}
 	}
 	catch (...) {
@@ -519,7 +540,7 @@ void __fastcall TDfmViewerForm::UpdateObjList(
 		TStringList *plst = new TStringList();
 		plst->Add("Name=" + ExtractFileName(pnam));
 		plst->Add("ObjectPath=" + pnam);
-		plst->Add(UnicodeString().sprintf(_T("ChildCount=%u"), o_lst->Count));
+		plst->Add(UnicodeString().sprintf(_T("ControlCount=%u"), o_lst->Count));
 		o_lst->InsertObject(0, pnam + "\\..", (TObject*)plst);
 	}
 
@@ -586,7 +607,7 @@ void __fastcall TDfmViewerForm::UpdateResultList()
 		std::unique_ptr<TStringList> pbuf(new TStringList());
 		for (int i=0; i<ClassFilterList->Count; i++) {
 			TStringList *plst = (TStringList *)ClassFilterList->Objects[i];
-			for (int j=5; j<plst->Count; j++) {	//***
+			for (int j=4; j<plst->Count; j++) {	//***
 				UnicodeString nam = plst->Names[j];
 				if (pbuf->IndexOf(nam)==-1) pbuf->Add(nam);
 			}
@@ -704,7 +725,7 @@ void __fastcall TDfmViewerForm::ObjListBoxDrawItem(TWinControl *Control, int Ind
 		xp += MaxObjWidth;
 
 		//Number of child controls
-		int ch_cnt = plst->Values["ChildCount"].ToIntDef(0);
+		int ch_cnt = plst->Values["ControlCount"].ToIntDef(0);
 		if (ch_cnt>0) {
 			cv->Font->Color = GetOptCol("fgNmbr");
 			cv->TextOut(xp, yp, UnicodeString().sprintf(_T("%3u"), ch_cnt));
@@ -896,7 +917,7 @@ void __fastcall TDfmViewerForm::PropListBoxDrawItem(TWinControl *Control, int In
 		cv->Font->Color = GetOptCol(is_num_str(lbuf)? "fgNmbr" : "fgList");
 		cv->TextOut(xp + MaxPrpWidth, yp, lbuf);
 
-		if (Index==3) {
+		if (Index==2) {
 			cv->Pen->Color = SelectWorB(cv->Brush->Color, 0.25);	//***
 			cv->Pen->Style = psSolid;
 			cv->Pen->Width = 1;
@@ -1531,33 +1552,28 @@ void __fastcall TDfmViewerForm::FindComboBoxClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::CopyActionExecute(TObject *Sender)
 {
-	TWinControl *wp = ActiveControl;	if (!wp) return;
-	UnicodeString lbuf;
-	if (wp->ClassNameIs("TListBox")) {
+	TWinControl *wp = Screen->ActiveControl;
+	if (wp && wp->ClassNameIs("TListBox")) {
 		TListBox *lp = (TListBox *)wp;
 		int idx = lp->ItemIndex;
-		if (idx!=-1) lbuf = lp->Items->Strings[idx];
+		if (idx!=-1) {
+			UnicodeString lbuf = lp->Items->Strings[idx];
+			if (!lbuf.IsEmpty()) Clipboard()->AsText = lbuf;
+		}
 	}
-	else if (wp->ClassNameIs("TStringGrid")) {
-		TStringGrid *gp = (TStringGrid *)wp;
-		lbuf = gp->Cells[gp->Col][gp->Row];
-	}
-
-	if (!lbuf.IsEmpty()) Clipboard()->AsText = lbuf;
 }
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::CopyActionUpdate(TObject *Sender)
 {
 	((TAction *)Sender)->Enabled
-		= (ObjListBox->Focused() || PropListBox->Focused() || TextListBox->Focused()
-			|| ResultGrid->Focused());
+		= (ObjListBox->Focused() || PropListBox->Focused() || TextListBox->Focused());
 }
 //---------------------------------------------------------------------------
 //Copy Value
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::CopyValActionExecute(TObject *Sender)
 {
-	TWinControl *wp = ActiveControl;
+	TWinControl *wp = Screen->ActiveControl;
 	if (wp && wp->ClassNameIs("TListBox")) {
 		TListBox *lp = (TListBox *)wp;
 		int idx = lp->ItemIndex;
@@ -1669,14 +1685,13 @@ void __fastcall TDfmViewerForm::ResultGridDrawCell(TObject *Sender, int ACol, in
 	TCanvas *cv = gp->Canvas;
 	cv->Font->Assign(ListFont);
 
-	cv->Brush->Color = (ARow==0)? GetOptCol("bgHead") :
-						(ACol<2)? AdjustColor(GetOptCol("bgList"), 48)	//Fixed col ***
-								: GetOptCol("bgList");
+	cv->Brush->Color = (ARow==0)? GetOptCol("bgHead") : GetOptCol("bgList");
 	cv->FillRect(Rect);
 
 	UnicodeString prop = gp->Cells[ACol][0];
 	UnicodeString lbuf = gp->Cells[ACol][ARow];
 
+	//Form Name
 	if (ARow>1 && ACol==0) {
 		if (ARow>gp->TopRow && lbuf==gp->Cells[ACol][ARow - 1]) lbuf = EmptyStr;
 	}
@@ -1690,6 +1705,7 @@ void __fastcall TDfmViewerForm::ResultGridDrawCell(TObject *Sender, int ACol, in
 	cv->Font->Color = GetOptCol((ARow==0)? "fgHead" : (ACol==0)? "fgName" : is_num? "fgNmbr" : "fgList");
 	cv->TextRect(Rect, xp, yp, lbuf);
 
+	//Dividing line
 	if (ARow>0 && ARow<gp->RowCount-1) {
 		if (gp->Cells[0][ARow]!=gp->Cells[0][ARow + 1]) {
 			cv->Pen->Color = clDkGray;
@@ -1698,9 +1714,7 @@ void __fastcall TDfmViewerForm::ResultGridDrawCell(TObject *Sender, int ACol, in
 		}
 	}
 
-	//Cursor
 	draw_GridCursor(gp, Rect, ARow, State, GetOptCol("LnCurs"), 2);
-	if (gp->Row==ARow && gp->Col==ACol) alpha_blend_Rect(cv, Rect, GetOptCol("LnCurs"), 96);
 }
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::ResultGridClick(TObject *Sender)
@@ -1727,12 +1741,6 @@ void __fastcall TDfmViewerForm::ResultGridKeyDown(TObject *Sender, WORD &Key,
 			UpdateObjList(ExtractFileDir(abs_onam), ExtractFileName(abs_onam));
 			return;
 		}
-	}
-	else if (SameText(KeyStr, "H")) {
-		Key = VK_LEFT;
-	}
-	else if (SameText(KeyStr, "L")) {
-		Key = VK_RIGHT;
 	}
 
 	((TStringGrid *)Sender)->Invalidate();
@@ -1839,6 +1847,134 @@ void __fastcall TDfmViewerForm::EditSrcActionUpdate(TObject *Sender)
 void __fastcall TDfmViewerForm::AboutItemClick(TObject *Sender)
 {
 	AboutBox->ShowModal();
+}
+
+//---------------------------------------------------------------------------
+//Dark Mode
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::SetManuOwnerDrawEvent(TMenuItem *mp)
+{
+	for (int i=0; i<mp->Count; i++) {
+		TMenuItem *ip = mp->Items[i];
+		ip->OnAdvancedDrawItem = PopMenuAdvancedDrawItem;
+		if (ip->Count>0) SetManuOwnerDrawEvent(ip);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::MainMenuMeasureItem(TObject *Sender, TCanvas *ACanvas,
+	int &Width, int &Height)
+{
+	TMenuItem *mp = (TMenuItem*)Sender;
+	Width = ACanvas->TextWidth(ReplaceStr(mp->Caption, "&", EmptyStr)) + 8;
+}
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::MainMenuAdvancedDrawItem(TObject *Sender, TCanvas *ACanvas,
+	const TRect &ARect, TOwnerDrawState State)
+{
+	TMenuItem *mp = (TMenuItem*)Sender;
+	ACanvas->Brush->Color = (State.Contains(odSelected) || State.Contains(odHotLight))? 
+								(IsDarkMode? dcl_htMenuBar : scl_htMenuBar) :
+								(IsDarkMode? dcl_bgMenuBar : scl_bgMenuBar);
+	ACanvas->Font->Color  = (State.Contains(odGrayed) || State.Contains(odDisabled))?
+								clGray : (IsDarkMode? dcl_fgMenuBar : scl_fgMenuBar);
+	ACanvas->FillRect(ARect);
+
+	TRect rc = ARect;
+	rc.Top	+= (ARect.Height() - ACanvas->TextHeight("Q")) / 2;
+	rc.Left += (ARect.Width() - ACanvas->TextWidth(ReplaceStr(mp->Caption, "&", EmptyStr))) / 2;
+	UINT opt = DT_LEFT;  if (State.Contains(odNoAccel))  opt |= DT_HIDEPREFIX;
+	::DrawText(ACanvas->Handle, mp->Caption.c_str(), -1, &rc, opt);
+
+	if (SameText(mp->Name, "Help1")) {
+		ACanvas->Brush->Color = IsDarkMode? dcl_bgMenuBar : scl_bgMenuBar;
+		rc = ARect;
+		rc.Left  = rc.Right;
+		rc.Right = rc.Left + ClientWidth;
+		ACanvas->FillRect(rc);
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::PopMenuAdvancedDrawItem(TObject *Sender, TCanvas *ACanvas, 
+	const TRect &ARect, TOwnerDrawState State)
+{
+	TMenuItem *mp = (TMenuItem*)Sender;
+	bool is_hl = (State.Contains(odSelected) || State.Contains(odHotLight));
+	ACanvas->Brush->Color = is_hl? (IsDarkMode? dcl_Highlight : scl_MenuSelect) : (IsDarkMode? dcl_Menu : scl_Menu);
+	ACanvas->Font->Color  = (State.Contains(odGrayed) || State.Contains(odDisabled))?
+								clGray : (IsDarkMode? dcl_MenuText : scl_MenuText);
+	ACanvas->FillRect(ARect);
+
+	if (SameStr(mp->Caption, "-")) {
+		draw_MenuSeparator(ACanvas, ARect);
+	}
+	else {
+		TRect rc = ARect;
+		int hi = rc.Height();
+		rc.Left += (hi + 8);
+		int yp = ARect.Top + (hi - ACanvas->TextHeight("Q")) / 2;
+		rc.Top = yp;
+		UINT opt = DT_LEFT;  if (State.Contains(odNoAccel))  opt |= DT_HIDEPREFIX;
+		::DrawText(ACanvas->Handle, mp->Caption.c_str(), -1, &rc, opt);
+
+		if (mp->Checked) {
+			ACanvas->Brush->Color = IsDarkMode? (is_hl? dcl_Highlight2 : dcl_Highlight)
+											  : (is_hl? scl_MenuSelect2 : scl_MenuSelect);
+			rc = ARect;
+			rc.Right = rc.Left + hi;
+			ACanvas->FillRect(rc);
+			UnicodeString chk = _T("\u2713");
+			ACanvas->TextOut(rc.Left + (hi - ACanvas->TextWidth(chk))/2, yp, chk);
+		}
+	}
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::MainMenuClick(TObject *Sender)
+{
+	SetMenuBgColor(MainMenu1->Handle);
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::TabPageControlDrawTab(TCustomTabControl *Control,
+	int TabIndex, const TRect &Rect, bool Active)
+{
+	draw_OwnerTab(Control, TabIndex, Rect, Active, IsDarkMode);
+}
+
+//---------------------------------------------------------------------------
+//StatusBar
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::SttBar1WndProc(TMessage &msg)
+{
+	if (msg.Msg==WM_ERASEBKGND) {
+		std::unique_ptr<TCanvas> cv(new TCanvas());
+		cv->Handle = (HDC)msg.WParam;
+		cv->Brush->Color = get_PanelColor();
+		cv->FillRect(StatusBar1->ClientRect);
+		if (IsDarkMode) {
+			//Upper border
+			cv->Pen->Color = SelectWorB(col_DkPanel, 0.33);	//***
+			cv->Pen->Width = 1;
+			cv->Pen->Style = psSolid;
+			cv->MoveTo(0, 0);
+			cv->LineTo(StatusBar1->ClientWidth, 0);
+		}
+		msg.Result = 1;
+		return;
+	}
+
+	org_SttBar1WndProc(msg);
+}
+//---------------------------------------------------------------------------
+void __fastcall TDfmViewerForm::StatusBar1DrawPanel(TStatusBar *StatusBar, TStatusPanel *Panel,
+	const TRect &Rect)
+{
+	TCanvas *cv = StatusBar->Canvas;
+	cv->Font->Assign(StatusBar->Font);
+	cv->Brush->Color = get_PanelColor();
+	cv->FillRect(Rect);
+	cv->Font->Color =  get_LabelColor();
+	cv->TextOut(Rect.Left + 2, Rect.Top, Panel->Text);
 }
 //---------------------------------------------------------------------------
 

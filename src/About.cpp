@@ -5,6 +5,7 @@
 #pragma hdrstop
 #include <tchar.h>
 #include <memory>
+#include "usr_dark.h"
 #include "About.h"
 
 //---------------------------------------------------------------------
@@ -28,6 +29,12 @@ void __fastcall TAboutBox::FormCreate(TObject *Sender)
 
 	Copyright->Caption  = "2019 by Nekomimi";
 	SupportURL->Caption = SUPPORT_URL;
+}
+//---------------------------------------------------------------------------
+void __fastcall TAboutBox::FormShow(TObject *Sender)
+{
+	SetDarkWinTheme(this);
+	SupportURL->Font->Color = IsDarkMode? TColor(RGB(0x66, 0x99, 0xFF)) : clNavy;
 }
 //---------------------------------------------------------------------------
 void __fastcall TAboutBox::SupportURLClick(TObject *Sender)

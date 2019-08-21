@@ -25,15 +25,19 @@ object DfmViewerForm: TDfmViewerForm
     DoubleBuffered = True
     Panels = <
       item
+        Style = psOwnerDraw
         Width = 400
       end
       item
+        Style = psOwnerDraw
         Width = 100
       end
       item
+        Style = psOwnerDraw
         Width = 50
       end>
     ParentDoubleBuffered = False
+    OnDrawPanel = StatusBar1DrawPanel
   end
   object MainPanel: TPanel
     Left = 0
@@ -41,49 +45,49 @@ object DfmViewerForm: TDfmViewerForm
     Width = 790
     Height = 550
     Align = alClient
-    BevelOuter = bvLowered
+    BevelOuter = bvNone
     TabOrder = 1
     object MainPageControl: TPageControl
-      Left = 1
-      Top = 1
-      Width = 788
-      Height = 548
+      Left = 0
+      Top = 0
+      Width = 790
+      Height = 550
       ActivePage = ObjectSheet
       Align = alClient
+      OwnerDraw = True
       TabOrder = 0
       TabWidth = 120
+      OnDrawTab = TabPageControlDrawTab
       object ObjectSheet: TTabSheet
         Caption = 'Object'
         object Splitter1: TSplitter
           Left = 400
           Top = 0
           Width = 6
-          Height = 520
-          Beveled = True
+          Height = 522
         end
         object ListPanel: TPanel
           Left = 0
           Top = 0
           Width = 400
-          Height = 520
+          Height = 522
           Align = alLeft
           BevelOuter = bvNone
           TabOrder = 0
           OnResize = ListPanelResize
           object Splitter2: TSplitter
             Left = 0
-            Top = 342
+            Top = 343
             Width = 400
-            Height = 5
+            Height = 6
             Cursor = crVSplit
             Align = alBottom
-            Beveled = True
           end
           object ObjListBox: TListBox
             Left = 0
-            Top = 26
+            Top = 29
             Width = 400
-            Height = 291
+            Height = 289
             Style = lbOwnerDrawFixed
             Align = alClient
             BorderStyle = bsNone
@@ -105,7 +109,7 @@ object DfmViewerForm: TDfmViewerForm
           end
           object PropListBox: TListBox
             Left = 0
-            Top = 347
+            Top = 349
             Width = 400
             Height = 173
             Style = lbOwnerDrawFixed
@@ -129,7 +133,7 @@ object DfmViewerForm: TDfmViewerForm
           end
           object ObjSubPanel: TPanel
             Left = 0
-            Top = 317
+            Top = 318
             Width = 400
             Height = 25
             Align = alBottom
@@ -166,24 +170,16 @@ object DfmViewerForm: TDfmViewerForm
             Left = 0
             Top = 0
             Width = 400
-            Height = 26
+            Height = 29
             Align = alTop
             AutoSize = True
             BevelOuter = bvNone
             BorderWidth = 2
             TabOrder = 0
-            object SpeedButton1: TSpeedButton
-              Left = 375
-              Top = 2
-              Width = 23
-              Height = 22
-              Action = FindObjAction
-              Align = alRight
-            end
             object FindComboBox: TComboBox
               Left = 2
               Top = 2
-              Width = 373
+              Width = 371
               Height = 21
               Align = alClient
               AutoComplete = False
@@ -194,26 +190,37 @@ object DfmViewerForm: TDfmViewerForm
               OnKeyDown = FindComboBoxKeyDown
               OnKeyPress = FindComboBoxKeyPress
             end
+            object FindObjBtn: TButton
+              Left = 373
+              Top = 2
+              Width = 25
+              Height = 25
+              Action = FindObjAction
+              Align = alRight
+              TabOrder = 1
+            end
           end
         end
         object ViewPageControl: TPageControl
           Left = 406
           Top = 0
-          Width = 374
-          Height = 520
+          Width = 376
+          Height = 522
           ActivePage = ImageSheet
           Align = alClient
           DoubleBuffered = True
+          OwnerDraw = True
           ParentDoubleBuffered = False
           TabOrder = 1
           TabWidth = 120
+          OnDrawTab = TabPageControlDrawTab
           object ImageSheet: TTabSheet
             Caption = 'Form Image'
             object ImagePanel: TPanel
               Left = 0
               Top = 0
-              Width = 366
-              Height = 492
+              Width = 368
+              Height = 494
               Align = alClient
               BevelOuter = bvNone
               BorderWidth = 8
@@ -224,8 +231,8 @@ object DfmViewerForm: TDfmViewerForm
               object ViewPaintBox: TPaintBox
                 Left = 8
                 Top = 8
-                Width = 350
-                Height = 476
+                Width = 352
+                Height = 478
                 Align = alClient
                 OnMouseDown = ViewPaintBoxMouseDown
                 OnPaint = ViewPaintBoxPaint
@@ -238,8 +245,8 @@ object DfmViewerForm: TDfmViewerForm
             object TextListBox: TListBox
               Left = 0
               Top = 0
-              Width = 366
-              Height = 492
+              Width = 368
+              Height = 494
               Style = lbOwnerDrawFixed
               Align = alClient
               BorderStyle = bsNone
@@ -260,17 +267,16 @@ object DfmViewerForm: TDfmViewerForm
           Tag = 2
           Left = 0
           Top = 35
-          Width = 780
-          Height = 485
+          Width = 782
+          Height = 487
           Align = alClient
           BorderStyle = bsNone
           Color = 2097152
           DefaultDrawing = False
-          DoubleBuffered = True
+          DoubleBuffered = False
           FixedCols = 2
-          Options = [goFixedVertLine, goVertLine, goColSizing, goThumbTracking]
+          Options = [goFixedVertLine, goVertLine, goColSizing, goRowSelect, goThumbTracking]
           ParentDoubleBuffered = False
-          PopupMenu = PopupMenu1
           TabOrder = 0
           StyleElements = [seBorder]
           OnClick = ResultGridClick
@@ -292,7 +298,7 @@ object DfmViewerForm: TDfmViewerForm
         object FindOpePanel: TPanel
           Left = 0
           Top = 0
-          Width = 780
+          Width = 782
           Height = 35
           Align = alTop
           BevelOuter = bvNone
@@ -407,10 +413,12 @@ object DfmViewerForm: TDfmViewerForm
     end
   end
   object MainMenu1: TMainMenu
+    OwnerDraw = True
     Left = 69
     Top = 100
     object File1: TMenuItem
       Caption = '&File'
+      OnClick = MainMenuClick
       object SelectProjectDirectory1: TMenuItem
         Caption = 'Select Project Directory...'
         OnClick = SelectProjectDirectory1Click
@@ -429,6 +437,7 @@ object DfmViewerForm: TDfmViewerForm
     end
     object Edit1: TMenuItem
       Caption = '&Edit'
+      OnClick = MainMenuClick
       object CopyItem: TMenuItem
         Action = CopyAction
       end
@@ -444,6 +453,7 @@ object DfmViewerForm: TDfmViewerForm
     end
     object Setup1: TMenuItem
       Caption = '&Setup'
+      OnClick = MainMenuClick
       object OptionsItem: TMenuItem
         Caption = '&Options...'
         OnClick = OptionBtnClick
@@ -451,6 +461,7 @@ object DfmViewerForm: TDfmViewerForm
     end
     object Help1: TMenuItem
       Caption = 'Help'
+      OnClick = MainMenuClick
       object AboutItem: TMenuItem
         Caption = '&About...'
         OnClick = AboutItemClick

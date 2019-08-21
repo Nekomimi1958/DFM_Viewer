@@ -32,8 +32,6 @@ void ListBoxPageUp(TListBox *lp);
 void draw_ListCursor(TListBox *lp, TRect &Rect, int Index, TOwnerDrawState State, TColor col, int lw);
 void draw_GridCursor(TStringGrid *gp, TRect &Rect, int ARow, TGridDrawState State, TColor col, int lw);
 
-void draw_ColorItem(TColor col, UnicodeString s, TCanvas *cv, TRect rc, bool hl);
-void draw_FontItem(TFont *fnt, UnicodeString s, TCanvas *cv, TRect rc, bool hl);
 void draw_Separator(TCanvas *cv, TRect rc, TColor bg = Graphics::clNone);
 
 void str_to_GridHeadder(TStringGrid *gp, UnicodeString s, UnicodeString sp = "|");

@@ -30,6 +30,7 @@ __published:
 	TFontDialog *FontDialog1;
 	TGroupBox *ColorGroupBox;
 	TGroupBox *GroupBox1;
+	TLabel *Label1;
 	TLabeledEdit *EditorEdit;
 	TLabeledEdit *EditPrmEdit;
 	TListBox *ColorListBox;
@@ -37,16 +38,16 @@ __published:
 	TPageControl *PageControl1;
 	TTabSheet *TabSheet2;
 	TTabSheet *TabSheet3;
-	TLabel *Label1;
 
 	void __fastcall FormShow(TObject *Sender);
 	void __fastcall OKBtnClick(TObject *Sender);
 	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall PageControl1DrawTab(TCustomTabControl *Control, int TabIndex, const TRect &Rect, bool Active);
+	void __fastcall FontComboBoxDrawItem(TWinControl *Control, int Index, TRect &Rect, TOwnerDrawState State);
+	void __fastcall ColorListBoxDrawItem(TWinControl *Control, int Index, TRect &Rect, TOwnerDrawState State);
 	void __fastcall RefFontBtnClick(TObject *Sender);
 	void __fastcall RefColBtnClick(TObject *Sender);
-	void __fastcall FontComboBoxDrawItem(TWinControl *Control, int Index, TRect &Rect, TOwnerDrawState State);
 	void __fastcall RefEditorBtnClick(TObject *Sender);
-	void __fastcall ColorListBoxDrawItem(TWinControl *Control, int Index, TRect &Rect, TOwnerDrawState State);
 
 private:
 

@@ -41,16 +41,18 @@ object OptionDlg: TOptionDlg
     Height = 294
     ActivePage = TabSheet2
     Align = alTop
+    OwnerDraw = True
     TabOrder = 0
     TabWidth = 100
+    OnDrawTab = PageControl1DrawTab
     object TabSheet2: TTabSheet
       Caption = 'General'
       ImageIndex = 1
       object Label1: TLabel
         Left = 143
         Top = 81
-        Width = 113
-        Height = 33
+        Width = 79
+        Height = 26
         Caption = '$F : File name'#13#10'$L : Line number'
       end
       object EditorEdit: TLabeledEdit

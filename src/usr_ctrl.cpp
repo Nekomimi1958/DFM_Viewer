@@ -170,69 +170,6 @@ void draw_GridCursor(TStringGrid *gp, TRect &Rect, int ARow, TGridDrawState Stat
 }
 
 //---------------------------------------------------------------------------
-void draw_ColorItem(TColor col, UnicodeString s, TCanvas *cv, TRect rc, bool hl)
-{
-	bool brk = remove_top_s(s, '|');
-	int yp = rc.Top;
-	int col_wd = rc.Height() * 2;
-
-	cv->Brush->Color = hl? clHighlight : clWindow;
-	cv->Font->Color  = hl? clHighlightText : clWindowText;
-	cv->FillRect(rc);
-	cv->TextOut(rc.Left + col_wd + 2, yp, s);
-
-	//Color
-	TRect col_rc = rc;  col_rc.Right = rc.Left + col_wd;
-	cv->Brush->Color = col;
-	if (cv->Brush->Color!=Graphics::clNone) {
-		cv->FillRect(col_rc);
-	}
-	else {
-		cv->Brush->Color = clBtnFace;
-		cv->FillRect(col_rc);
-		cv->Font->Color  = clWindowText;
-		cv->TextOut(col_rc.Left + 2, yp, "–³Œø");
-	}
-
-	if (brk) {
-		cv->Brush->Color = clWindow;
-		cv->Pen->Color	 = clGray;
-		cv->Pen->Style	 = psSolid;
-		cv->Pen->Width	 = 1;
-		cv->MoveTo(rc.Left,  rc.Top);
-		cv->LineTo(rc.Right, rc.Top);
-	}
-}
-
-//---------------------------------------------------------------------------
-void draw_FontItem(TFont *fnt, UnicodeString s, TCanvas *cv, TRect rc, bool hl)
-{
-	int xp = rc.Left + 2;
-	int yp = rc.Top;
-	int fh = abs(cv->Font->Height);
-
-	cv->Brush->Color = hl? clHighlight : clWindow;
-	cv->Font->Color  = hl? clHighlightText : clWindowText;
-	cv->FillRect(rc);
-	cv->TextOut(xp, yp, s);
-	xp += fh*10;	//***
-
-	if (fnt) {
-		//Size
-		UnicodeString szstr = fnt->Size;
-		cv->TextOut(xp + cv->TextWidth(" 99") - cv->TextWidth(szstr), yp, szstr);
-		xp += fh*2;
-		//Name
-		int sz = cv->Font->Size;
-		cv->Font->Assign(fnt);
-		cv->Font->Size	 = sz;
-		cv->Brush->Color = hl? clHighlight : clWindow;
-		cv->Font->Color  = hl? clHighlightText : clWindowText;
-		cv->TextOut(xp, yp, fnt->Name);
-	}
-}
-
-//---------------------------------------------------------------------------
 void draw_Separator(
 	TCanvas *cv, TRect rc,
 	TColor bg)	//”wŒiF	(default = clNone : cv->Brush->Color)

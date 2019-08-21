@@ -40,20 +40,42 @@ class TDfmViewerForm : public TForm
 __published:
 	TAction *CopyAction;
 	TAction *CopyValAction;
+	TAction *EditSrcAction;
 	TAction *FindObjAction;
 	TAction *ToParentAction;
 	TActionList *ActionList1;
+	TButton *FindObjBtn;
+	TComboBox *ClassComboBox;
 	TComboBox *FindComboBox;
 	TComboBox *SubComboBox;
-	TComboBox *ClassComboBox;
+	TFileExit *FileExit1;
 	TLabel *FilterSttLabel2;
+	TLabel *Label1;
+	TLabel *Label2;
 	TLabel *ObjSttLabel;
 	TLabeledEdit *FilterEdit2;
 	TListBox *ObjListBox;
 	TListBox *PropListBox;
 	TListBox *TextListBox;
+	TMainMenu *MainMenu1;
+	TMenuItem *AboutItem;
+	TMenuItem *CopyItem;
+	TMenuItem *CopyValueItem;
+	TMenuItem *Edit1;
+	TMenuItem *Editsource1;
+	TMenuItem *EditSrcItem;
+	TMenuItem *ExitItem;
+	TMenuItem *File1;
+	TMenuItem *Help1;
+	TMenuItem *N1;
+	TMenuItem *N2;
+	TMenuItem *OptionsItem;
 	TMenuItem *PopCopyItem;
 	TMenuItem *PopCopyValItem;
+	TMenuItem *ReloadItem;
+	TMenuItem *SelectProjectDirectory1;
+	TMenuItem *Sep_1;
+	TMenuItem *Setup1;
 	TPageControl *MainPageControl;
 	TPageControl *ViewPageControl;
 	TPaintBox *ViewPaintBox;
@@ -65,36 +87,14 @@ __published:
 	TPanel *ObjFindPanel;
 	TPanel *ObjSubPanel;
 	TPopupMenu *PopupMenu1;
-	TSpeedButton *SpeedButton1;
 	TSplitter *Splitter1;
 	TSplitter *Splitter2;
 	TStatusBar *StatusBar1;
 	TStringGrid *ResultGrid;
-	TTabSheet *ListSheet;
 	TTabSheet *ImageSheet;
+	TTabSheet *ListSheet;
 	TTabSheet *ObjectSheet;
 	TTabSheet *TextSheet;
-	TLabel *Label1;
-	TMainMenu *MainMenu1;
-	TMenuItem *File1;
-	TMenuItem *Setup1;
-	TMenuItem *ReloadItem;
-	TMenuItem *OptionsItem;
-	TLabel *Label2;
-	TFileExit *FileExit1;
-	TMenuItem *ExitItem;
-	TMenuItem *SelectProjectDirectory1;
-	TMenuItem *Sep_1;
-	TAction *EditSrcAction;
-	TMenuItem *N1;
-	TMenuItem *Editsource1;
-	TMenuItem *Edit1;
-	TMenuItem *EditSrcItem;
-	TMenuItem *N2;
-	TMenuItem *CopyItem;
-	TMenuItem *CopyValueItem;
-	TMenuItem *Help1;
-	TMenuItem *AboutItem;
 
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall FormDestroy(TObject *Sender);
@@ -142,6 +142,12 @@ __published:
 	void __fastcall CopyValActionUpdate(TObject *Sender);
 	void __fastcall AboutItemClick(TObject *Sender);
 	void __fastcall PropListBoxClick(TObject *Sender);
+	void __fastcall TabPageControlDrawTab(TCustomTabControl *Control, int TabIndex, const TRect &Rect, bool Active);
+	void __fastcall MainMenuAdvancedDrawItem(TObject *Sender, TCanvas *ACanvas, const TRect &ARect, TOwnerDrawState State);
+	void __fastcall MainMenuMeasureItem(TObject *Sender, TCanvas *ACanvas, int &Width, int &Height);
+	void __fastcall PopMenuAdvancedDrawItem(TObject *Sender, TCanvas *ACanvas, const TRect &ARect, TOwnerDrawState State);
+	void __fastcall StatusBar1DrawPanel(TStatusBar *StatusBar, TStatusPanel *Panel, const TRect &Rect);
+	void __fastcall MainMenuClick(TObject *Sender);
 
 private:
 	TIniFile *IniFile;
@@ -183,6 +189,9 @@ private:
 	void  __fastcall GetOffPos(int idx, int *x, int*y);
 	TRect __fastcall GetObjRect(int idx);
 	void  __fastcall DrawControl(TCanvas *cv, UnicodeString onam, TColor col, int level);
+
+	TWndMethod org_SttBar1WndProc;
+	void __fastcall SttBar1WndProc(TMessage &msg);
 
 	void __fastcall AddColorList(UnicodeString id, UnicodeString dsc, TColor def) 
 	{
@@ -232,6 +241,8 @@ private:
 	void __fastcall UpdateResultList();
 
 	bool __fastcall OpenByTextEditor(UnicodeString fnam, int lno = 0);
+
+	void __fastcall SetManuOwnerDrawEvent(TMenuItem *mp);
 
 public:
 	TStringList *ColorValList;
