@@ -2,13 +2,6 @@
 // String Operation														//
 //																		//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-#include <algorithm>
-#include <memory>
-#include <System.StrUtils.hpp>
-#include <System.Masks.hpp>
-#include <RegularExpressions.hpp>
 #include "usr_str.h"
 
 //---------------------------------------------------------------------------
@@ -50,52 +43,6 @@ int __fastcall comp_DescendOrder(TStringList *List, int Index1, int Index2)
 int __fastcall comp_ObjectsOrder(TStringList *List, int Index1, int Index2)
 {
 	return (int)List->Objects[Index1] - (int)List->Objects[Index2];
-}
-
-//---------------------------------------------------------------------------
-int  USR_CsvCol 	 = 0;
-int  USR_CsvSortMode = 1;
-bool USR_CsvTopIsHdr = false;
-
-//---------------------------------------------------------------------------
-int __fastcall comp_CsvNaturalOrder(TStringList *List, int Index1, int Index2)
-{
-	if (USR_CsvTopIsHdr) {	//先頭行は項目名
-		if ((int)List->Objects[Index1]==0) return -1;
-		if ((int)List->Objects[Index2]==0) return  1;
-	}
-
-	UnicodeString s1  = get_csv_item(List->Strings[Index1], USR_CsvCol);
-	UnicodeString s2  = get_csv_item(List->Strings[Index2], USR_CsvCol);
-	UnicodeString ns1 = extract_top_int_str(s1);
-	UnicodeString ns2 = extract_top_int_str(s2);
-
-	int res = (!ns1.IsEmpty() && !ns2.IsEmpty())? StrCmpLogicalW(ns1.c_str(), ns2.c_str()) : 0;
-	if (res==0) res = StrCmpLogicalW(s1.c_str(), s2.c_str());
-	if (res==0) res = (int)List->Objects[Index1] - (int)List->Objects[Index2];
-	res *= USR_CsvSortMode;
-	return res;
-}
-//---------------------------------------------------------------------------
-int __fastcall comp_TsvNaturalOrder(TStringList *List, int Index1, int Index2)
-{
-	if (USR_CsvTopIsHdr) {
-		if ((int)List->Objects[Index1]==0) return -1;
-		if ((int)List->Objects[Index2]==0) return  1;
-	}
-
-	TStringDynArray itm1 = SplitString(List->Strings[Index1], "\t");
-	TStringDynArray itm2 = SplitString(List->Strings[Index2], "\t");
-	UnicodeString s1  = (USR_CsvCol<itm1.Length)? itm1[USR_CsvCol] : EmptyStr;
-	UnicodeString s2  = (USR_CsvCol<itm2.Length)? itm2[USR_CsvCol] : EmptyStr;
-	UnicodeString ns1 = extract_top_int_str(s1);
-	UnicodeString ns2 = extract_top_int_str(s2);
-
-	int res = (!ns1.IsEmpty() && !ns2.IsEmpty())? StrCmpLogicalW(ns1.c_str(), ns2.c_str()) : 0;
-	if (res==0) res = StrCmpLogicalW(s1.c_str(), s2.c_str());
-	if (res==0) res = (int)List->Objects[Index1] - (int)List->Objects[Index2];
-	res *= USR_CsvSortMode;
-	return res;
 }
 
 //---------------------------------------------------------------------------
@@ -430,26 +377,6 @@ UnicodeString exclude_top_end(UnicodeString s)
 }
 
 //---------------------------------------------------------------------------
-UnicodeString trim_ex(UnicodeString s)
-{
-	for (;;) {
-		if (remove_top_s(s, "　")) continue;
-		if (remove_top_s(s, ' '))  continue;
-		if (remove_top_s(s, '\t')) continue;
-		break;
-	}
-
-	for (;;) {
-		if (remove_end_s(s, "　")) continue;
-		if (remove_end_s(s, ' '))  continue;
-		if (remove_end_s(s, '\t')) continue;
-		break;
-	}
-
-	return Trim(s);
-}
-
-//---------------------------------------------------------------------------
 UnicodeString replace_i(UnicodeString s, const _TCHAR *o, const _TCHAR *r)
 {
 	return ReplaceText(s, o, r);
@@ -560,7 +487,7 @@ TColor xRRGGBB_to_col(UnicodeString s)
 			TColor(RGB(("0x" + s.SubString(1,2)).ToIntDef(0),
 					   ("0x" + s.SubString(3,2)).ToIntDef(0),
 					   ("0x" + s.SubString(5,2)).ToIntDef(0))) :
-			clNone;
+			Graphics::clNone;
 }
 
 //---------------------------------------------------------------------------
@@ -849,7 +776,7 @@ void get_find_wd_list(UnicodeString wd, TStringList *lst)
 	for (;;) {
 		if (wd.IsEmpty()) break;
 		int ph = wd.Pos(' ');
-		int pw = wd.Pos("　");
+		int pw = wd.Pos("\u3000");
 		int p = (ph && !pw)? ph : (!ph && pw)? pw : (ph && pw)? std::min(ph, pw) : 0;
 		if (p==1)
 			wd.Delete(1, 1);
@@ -862,7 +789,6 @@ void get_find_wd_list(UnicodeString wd, TStringList *lst)
 		}
 	}
 
-	//空白やタブを変換
 	for (int i=0; i<lst->Count; i++) lst->Strings[i] = conv_esc_char(lst->Strings[i]);
 }
 
@@ -1152,7 +1078,7 @@ bool is_quot(UnicodeString s)
 //---------------------------------------------------------------------------
 UnicodeString add_quot_if_spc(UnicodeString s)
 {
-	if (ContainsStr(s, " ") || ContainsStr(s, "　")) s = "\"" + s + "\"";
+	if (ContainsStr(s, " ") || ContainsStr(s, "\u3000")) s = "\"" + s + "\"";
 	return s;
 }
 
@@ -1257,7 +1183,7 @@ int str_len_half(UnicodeString s)
 		for (int i=1; i<=s.Length(); i++) {
 			if (!s.IsTrailSurrogate(i)) {
 				if (s[i]!=s_u[i] && s_u[i]=='?')
-					r_u.UCAT_T("？");
+					r_u.UCAT_T("\uff1f");
 				else
 					r_u += s_u[i];
 			}
@@ -1317,13 +1243,6 @@ UnicodeString to_FullWidth(UnicodeString s)
 UnicodeString to_HalfWidth(UnicodeString s)
 {
 	return to_Full_or_Half(s, false);
-}
-
-//---------------------------------------------------------------------------
-int is_RuledLine(UnicodeString s)
-{
-	return SameStr(s, StringOfChar(_T('─'), s.Length())) ? 1 :
-			(SameStr(s, StringOfChar(_T('━'), s.Length()))? 2 : 0);
 }
 
 //---------------------------------------------------------------------------
@@ -1680,10 +1599,10 @@ UnicodeString check_Surrogates(UnicodeString s)
 //---------------------------------------------------------------------------
 UnicodeString check_EnvDepandChars(UnicodeString s)
 {
-	int tbl[] = {0x2116, 0x2121,							//№ ℡
-				 0x2211, 0x221a, 0x221f,					//∑ √ ∟
-				 0x2220, 0x2229, 0x222a, 0x222b, 0x222e,	//∠ ∩ ∪ ∫ ∮
-				 0x2235, 0x2252, 0x2261, 0x22a5, 0x22bf};	//∵ ≒ ≡ ⊥ ⊿
+	int tbl[] = {0x2116, 0x2121,
+				 0x2211, 0x221a, 0x221f,
+				 0x2220, 0x2229, 0x222a, 0x222b, 0x222e,
+				 0x2235, 0x2252, 0x2261, 0x22a5, 0x22bf};
 	int n = sizeof(tbl)/sizeof(tbl[0]);
 
 	UnicodeString ret_str;

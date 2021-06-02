@@ -30,12 +30,6 @@ int __fastcall comp_AscendOrder(TStringList *List, int Index1, int Index2);
 int __fastcall comp_DescendOrder(TStringList *List, int Index1, int Index2);
 int __fastcall comp_ObjectsOrder(TStringList *List, int Index1, int Index2);
 
-extern int  USR_CsvCol;
-extern int  USR_CsvSortMode;
-extern bool USR_CsvTopIsHdr;
-int __fastcall comp_CsvNaturalOrder(TStringList *List, int Index1, int Index2);
-int __fastcall comp_TsvNaturalOrder(TStringList *List, int Index1, int Index2);
-
 //---------------------------------------------------------------------------
 UnicodeString get_tkn(UnicodeString s, UnicodeString sp);
 UnicodeString get_tkn(UnicodeString s, const _TCHAR *sp);
@@ -94,8 +88,6 @@ void delete_end(UnicodeString &s);
 
 UnicodeString exclude_top(UnicodeString s);
 UnicodeString exclude_top_end(UnicodeString s);
-
-UnicodeString trim_ex(UnicodeString s);
 
 UnicodeString replace_i(UnicodeString s, const _TCHAR *o, const _TCHAR *r);
 UnicodeString replace_s(UnicodeString s, const _TCHAR *o, const _TCHAR *r);
@@ -225,8 +217,6 @@ UnicodeString align_l_str(UnicodeString s, int wd, UnicodeString post_s = EmptyS
 UnicodeString to_Full_or_Half(UnicodeString s, bool to_w);
 UnicodeString to_FullWidth(UnicodeString s);
 UnicodeString to_HalfWidth(UnicodeString s);
-
-int is_RuledLine(UnicodeString s);
 
 UnicodeString make_RuledLine(int cnt, ...);
 

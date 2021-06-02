@@ -13,4 +13,4 @@ If no parameter is specified, the current directory is used.
 It is possible to to move the cursor or change focus uning the hjkl keys as arrow keys.  
 
 ## Development Environment
-C++Builder 10.3.2
+C++Builder 10.4.2 (BCC32C/BCC64)

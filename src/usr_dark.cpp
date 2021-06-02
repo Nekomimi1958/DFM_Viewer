@@ -1,16 +1,10 @@
-﻿//----------------------------------------------------------------------//
+//----------------------------------------------------------------------//
 // Dark Mode															//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-#include <tchar.h>
-#include <algorithm>
-#include <memory>
-#include <System.StrUtils.hpp>
 #include "usr_dark.h"
 
 //---------------------------------------------------------------------------
-//非公開API
+//API
 HMODULE hUxTheme = NULL;
 FUNC_ShouldAppsUseDarkMode	lpfShouldAppsUseDarkMode  = NULL;
 FUNC_AllowDarkModeForWindow	lpfAllowDarkModeForWindow = NULL;
@@ -18,30 +12,30 @@ FUNC_AllowDarkModeForApp	lpfAllowDarkModeForApp	  = NULL;
 FUNC_FlushMenuThemes		lpfFlushMenuThemes		  = NULL;
 
 //---------------------------------------------------------------------------
-bool SupportDarkMode = false;		//ダークモード適用可能
-bool IsDarkMode 	 = false;		//ダークモードが適用されている
-bool AllowDarkMode   = false;		//ダークモードを適用(オプション設定)
+bool SupportDarkMode = false;
+bool IsDarkMode 	 = false;
+bool AllowDarkMode   = false;
 
 //---------------------------------------------------------------------------
-bool SureCancel;					//キャンセルボタンを表示
-bool SureDefNo;						//「いいえ」がデフォルト
-bool SureAdjPos;					//表示位置を状況に合わせて調整
-bool MsgPosCenter = false;			//メイン画面の中央に表示
+bool SureCancel;
+bool SureDefNo;
+bool SureAdjPos;
+bool MsgPosCenter = false;
 
 //---------------------------------------------------------------------------
 const TColor col_None = Graphics::clNone;
 
-TColor col_bgOptTab = clHighlight;		//アクティブな設定タブの背景色
-TColor col_fgOptTab = clHighlightText;	//アクティブな設定タブの文字色
-TColor col_Invalid;						//無効な項目の背景色
-TColor col_Illegal;						//不正な入力項目の背景色
+TColor col_bgOptTab = clHighlight;
+TColor col_fgOptTab = clHighlightText;
+TColor col_Invalid;
+TColor col_Illegal;
 
-TColor col_DkPanel = col_None;			//ダークモード: パネルの背景色
-TColor col_DkInval;						//ダークモード: 無効な項目の背景色
-TColor col_DkIlleg;						//ダークモード: 不正な入力項目の背景色
+TColor col_DkPanel = col_None;
+TColor col_DkInval;
+TColor col_DkIlleg;
 
 //---------------------------------------------------------------------------
-//システム色
+//System Colors
 TColor scl_Window;
 TColor scl_WindowText;
 TColor scl_Highlight;
@@ -58,7 +52,7 @@ TColor scl_bgMenuBar;
 TColor scl_fgMenuBar;
 TColor scl_htMenuBar;
 
-//ダーク色
+//Dark Colors
 TColor dcl_Window;
 TColor dcl_WindowText;
 TColor dcl_Highlight;
@@ -75,8 +69,7 @@ TColor dcl_fgMenuBar;
 TColor dcl_htMenuBar;
 
 TBrush *MenuBrush = NULL;
-//---------------------------------------------------------------------------
-//ハイコントラストか?
+
 //---------------------------------------------------------------------------
 bool is_HighContrast()
 {
@@ -86,7 +79,7 @@ bool is_HighContrast()
 }
 
 //---------------------------------------------------------------------------
-//システム色の初期化
+//Initialize System Colors
 //---------------------------------------------------------------------------
 void InitializeSysColor()
 {
@@ -125,7 +118,6 @@ void InitializeSysColor()
 //---------------------------------------------------------------------------
 void InitializeDarkMode()
 {
-	//ダークモード初期化
 	if (CheckWin32Version(10) && TOSVersion::Build >= 17763 && !is_HighContrast()) {
 		hUxTheme = ::LoadLibrary(_T("uxtheme.dll"));
 		if (hUxTheme) {
@@ -151,8 +143,6 @@ void EndDarkMode()
 }
 
 //---------------------------------------------------------------------------
-//ダークモードを適用
-//---------------------------------------------------------------------------
 bool ApplyDarkMode(HWND hWnd)
 {
 	IsDarkMode = false;
@@ -173,22 +163,20 @@ bool ApplyDarkMode(HWND hWnd)
 }
 
 //---------------------------------------------------------------------------
-//ダークモードを考慮した色の取得
-//---------------------------------------------------------------------------
 TColor get_WinColor(
-	bool is_inv)	//無効な項目	(default = false)
+	bool is_inv)	//Invalid item	(default = false)
 {
 	return is_inv? (IsDarkMode? col_DkInval : col_Invalid) : (IsDarkMode? dcl_Window : scl_Window);
 }
 //---------------------------------------------------------------------------
 TColor get_TextColor(
-	bool hl)	//ハイライト	(default = false)
+	bool hl)		//Highlight	(default = false)
 {
 	return hl? (IsDarkMode? dcl_HighlightText : scl_HighlightText) : (IsDarkMode? dcl_WindowText : scl_WindowText);
 }
 //---------------------------------------------------------------------------
 TColor get_PanelColor(
-	bool is_inv)	//無効な項目	(default = false)
+	bool is_inv)	//Invalid item	(default = false)
 {
 	if (is_inv) return (IsDarkMode? col_DkInval : col_Invalid);
 	return (IsDarkMode? ((col_DkPanel!=col_None)? col_DkPanel : dcl_BtnFace) : scl_BtnFace);
@@ -200,8 +188,6 @@ TColor get_LabelColor()
 }
 
 //---------------------------------------------------------------------------
-//メニュー背景の設定
-//---------------------------------------------------------------------------
 void SetMenuBgColor(HMENU hMenu)
 {
 	MenuBrush->Color = IsDarkMode? dcl_Menu : scl_Menu;
@@ -211,8 +197,6 @@ void SetMenuBgColor(HMENU hMenu)
 	::SetMenuInfo(hMenu, &mi);
 }
 
-//---------------------------------------------------------------------------
-//ハイライト色の設定
 //---------------------------------------------------------------------------
 void SetHighlight(TCanvas *cv, bool hl)
 {
@@ -227,7 +211,7 @@ void SetHighlight(TCanvas *cv, bool hl)
 }
 
 //---------------------------------------------------------------------------
-//コントロールにダークモードを適用
+//Apply Dark Mode to Controls
 //---------------------------------------------------------------------------
 void SetDarkWinTheme(TWinControl *wp)
 {
@@ -284,16 +268,16 @@ void SetDarkWinTheme(TWinControl *wp)
 			AttachLabelToGroup(wp);
 		}
 
-		//ラジオボタン・グループ
+		//RadioButton group
 		if (wp->ClassNameIs("TRadioGroup")) {
 			if (IsDarkMode) {
 				TRadioGroup *gp = (TRadioGroup *)wp;
 				for (int i=0; i<gp->Items->Count; i++) {
 					if (!gp->Items->Strings[i].IsEmpty()) {
-						//ボタンのキャプションをラベルに置き換える
+						//Replace Caption with Label
 						TRadioButton *cp = gp->Buttons[i];
 						TLabel *lp = new TLabel(cp->Parent);
-						lp->Tag		= (18 << 16) + cp->Width - 8;	//検索マーク用 ***
+						lp->Tag		= (18 << 16) + cp->Width - 8;
 						lp->Parent	= cp->Parent;
 						lp->Font->Assign(cp->Font);
 						lp->Color		= bg_panel;
@@ -318,7 +302,7 @@ void SetDarkWinTheme(TWinControl *wp)
 				}
 			}
 		}
-		//その他一般
+		//Others
 		else {
 			for (int i=0; i<wp->ControlCount; i++) {
 				TControl *cp = wp->Controls[i];
@@ -333,7 +317,7 @@ void SetDarkWinTheme(TWinControl *wp)
 			}
 		}
 	}
-	//以下は単独の子コントロール
+	//Single child control
 	else if (wp->ClassNameIs("TEdit")) {
 		TEdit *ep = (TEdit *)wp;
 		ep->Color		= bg_win;
@@ -353,10 +337,6 @@ void SetDarkWinTheme(TWinControl *wp)
 	else if (wp->ClassNameIs("TMemo")) {
 		::SetWindowTheme(wp->Handle, IsDarkMode? _T("DarkMode_Explorer") : NULL, NULL);
 	}
-	else if (wp->ClassNameIs("TSpeedButton")) {
-		TSpeedButton *bp = (TSpeedButton *)wp;
-		bp->Font->Color = fg_label;
-	}
 	else if (wp->ClassNameIs("TComboBox")) {
 		::SetWindowTheme(wp->Handle, IsDarkMode? _T("DarkMode_CFD") : NULL, NULL);
 		TComboBox *cp = (TComboBox *)wp;
@@ -367,9 +347,9 @@ void SetDarkWinTheme(TWinControl *wp)
 		if (IsDarkMode) {
 			TCheckBox *cp = (TCheckBox *)wp;
 			if (!cp->Caption.IsEmpty()) {
-				//キャプションをラベルに置き換える
+				//Replace Caption with Label
 				TLabel *lp = new TLabel(cp->Parent);
-				lp->Tag		= (cp->Height << 16) + cp->Width;	//検索マーク用
+				lp->Tag		= (cp->Height << 16) + cp->Width;
 				lp->Parent	= cp->Parent;
 				lp->Font->Assign(cp->Font);
 				lp->Color		= bg_panel;
@@ -387,9 +367,9 @@ void SetDarkWinTheme(TWinControl *wp)
 		if (IsDarkMode) {
 			TRadioButton *cp = (TRadioButton *)wp;
 			if (!cp->Caption.IsEmpty()) {
-				//キャプションをラベルに置き換える
+				//Replace Caption with Label
 				TLabel *lp = new TLabel(cp->Parent);
-				lp->Tag		= (cp->Height << 16) + cp->Width;	//検索マーク用
+				lp->Tag		= (cp->Height << 16) + cp->Width;
 				lp->Parent	= cp->Parent;
 				lp->Font->Assign(cp->Font);
 				lp->Color		= bg_panel;
@@ -408,10 +388,8 @@ void SetDarkWinTheme(TWinControl *wp)
 }
 
 //---------------------------------------------------------------------------
-//TGroupBox/TRadioGroup にキャプション疑似表示用のラベルを追加
-//---------------------------------------------------------------------------
 TLabel* AttachLabelToGroup(TWinControl *wp,
-	UnicodeString s)	//キャプション	(default = EmptyStr)
+	UnicodeString s)	//Caption	(default = EmptyStr)
 {
 	TLabel *ret_p = NULL;
 
@@ -450,7 +428,7 @@ TLabel* AttachLabelToGroup(TWinControl *wp,
 		TPanel *pp	= new TPanel(parent);
 		pp->Parent	= parent;
 		ret_p->Font->Assign(Application->DefaultFont);
-		if (scale>1.0) ret_p->Font->Size = (int)(ret_p->Font->Size/scale);	//※
+		if (scale>1.0) ret_p->Font->Size = (int)(ret_p->Font->Size/scale);
 		ret_p->Font->Color = get_LabelColor();
 		ret_p->Color	   = get_PanelColor();
 		pp->Left		   = xp;
@@ -470,8 +448,6 @@ TLabel* AttachLabelToGroup(TWinControl *wp,
 }
 
 //---------------------------------------------------------------------------
-//エラーメッセージ
-//---------------------------------------------------------------------------
 void msgbox_ERR(UnicodeString msg)
 {
 	if (msg.IsEmpty()) return;
@@ -481,9 +457,6 @@ void msgbox_ERR(UnicodeString msg)
 	MsgDlg->ShowModal();
 	delete MsgDlg;
 }
-
-//---------------------------------------------------------------------------
-//警告メッセージ
 //---------------------------------------------------------------------------
 void msgbox_WARN(UnicodeString msg)
 {
@@ -494,9 +467,6 @@ void msgbox_WARN(UnicodeString msg)
 	MsgDlg->ShowModal();
 	delete MsgDlg;
 }
-
-//---------------------------------------------------------------------------
-//確認メッセージ
 //---------------------------------------------------------------------------
 void msgbox_OK(UnicodeString msg, UnicodeString tit)
 {
@@ -553,69 +523,16 @@ bool msgbox_Sure(const _TCHAR *msg, bool ask, bool center)
 }
 
 //---------------------------------------------------------------------------
-//「すべてに適用」チェックボックス付き確認メッセージ
-//---------------------------------------------------------------------------
-int msgbox_SureAll(UnicodeString msg, bool &app_chk, bool center)
-{
-	TForm *MsgDlg = CreateMessageDialog(msg, mtConfirmation,
-						TMsgDlgButtons() << mbYes << mbNo << mbCancel, 
-						SureDefNo? mbNo : mbYes);
-
-	//「すべてに適用」チェックボックスを追加
-	TCheckBox *cp = new TCheckBox(MsgDlg);
-	MsgDlg->ClientHeight = MsgDlg->ClientHeight + cp->Height + 12;
-	SetDarkWinTheme(MsgDlg);
-
-	cp->Caption = "すべてに適用(&A)";
-	cp->Parent	= MsgDlg;
-	cp->Left	= 20;
-	cp->Top		= MsgDlg->ClientHeight - cp->Height - 12;
-	cp->Width	= MsgDlg->ClientWidth - cp->Left;
-	if (IsDarkMode) {
-		TLabel *lp	= new TLabel(MsgDlg);
-		TPanel *pp	= new TPanel(MsgDlg);
-		pp->Parent	= MsgDlg;
-		lp->Font->Assign(MsgDlg->Font);
-		lp->Color		= get_PanelColor();
-		lp->Font->Color = get_LabelColor();
-		pp->Left		= cp->Left + 14;
-		pp->Top 		= cp->Top  - 2;
-		pp->Color		= get_PanelColor();
-		pp->Caption 	= EmptyStr;
-		pp->BorderWidth = 2;
-		pp->BevelOuter	= bvNone;
-		pp->StyleElements.Clear();
-		lp->Caption 	= cp->Caption;
-		lp->Parent		= pp;
-		pp->AutoSize	= true;
-		pp->BringToFront();
-	}
-
-	MsgPosCenter = center;
-	int res = MsgDlg->ShowModal();
-	MsgPosCenter = false;
-
-	app_chk = cp->Checked;
-	delete MsgDlg;
-
-	return res;
-}
-
-//---------------------------------------------------------------------------
-//ソート方向マークを描画
-//---------------------------------------------------------------------------
 void draw_SortMark(TCanvas *cv, int x, int y,
-	bool is_asc,	//昇順
-	TColor fg)		//マーク色
+	bool is_asc,	//Ascending order
+	TColor fg)		//Mark color
 {
 	TPoint mrk[3];
-	//▲
 	if (is_asc) {
 		mrk[0] = Point(x,	  y + 3);
 		mrk[1] = Point(x + 6, y + 3);
 		mrk[2] = Point(x + 3, y);
 	}
-	//▼
 	else {
 		mrk[0] = Point(x,	  y);
 		mrk[1] = Point(x + 6, y);
@@ -629,12 +546,10 @@ void draw_SortMark(TCanvas *cv, int x, int y,
 }
 
 //---------------------------------------------------------------------------
-//ボタンにマークを設定
-//---------------------------------------------------------------------------
 void set_ButtonMark(TSpeedButton *bp,
-	int id,		//識別子	(default = UBMK_DOWN)
-	TColor fg,	//前景色	(default = col_BtnText)
-	TColor bg)	//背景色	(default = col_BtnFace)
+	int id,		//Identifier		(default = UBMK_DOWN)
+	TColor fg,	//Foreground color	(default = col_BtnText)
+	TColor bg)	//Background color	(default = col_BtnFace)
 {
 	int size;
 	switch (id) {
@@ -725,26 +640,21 @@ void set_ButtonMark(TSpeedButton *bp,
 	}
 }
 //---------------------------------------------------------------------------
-//ボタンにマークを設定
-//---------------------------------------------------------------------------
 void set_BtnMarkDark(TSpeedButton *bp, int id)
 {
 	set_ButtonMark(bp, id, (IsDarkMode? dcl_BtnText : scl_BtnText), get_PanelColor());
 }
 
 //---------------------------------------------------------------------------
-//タブの描画
-//---------------------------------------------------------------------------
 void draw_OwnerTab(TCustomTabControl *Control, int idx, const TRect rc,
 	bool active,
-	bool dark_sw)	//ダークモード適用	(default = false)
+	bool dark_sw)	//Dark Mode	(default = false)
 {
 	TTabControl *tp = (TTabControl*)Control;
 	TCanvas *cv = tp->Canvas;
-	//背景
 	cv->Brush->Color = active? col_bgOptTab : get_PanelColor();
 	cv->FillRect(rc);
-	//文字
+
 	UnicodeString titstr = tp->Tabs->Strings[idx];
 	cv->Font->Color = active? col_fgOptTab : get_LabelColor();
 	cv->Font->Style = active? (cv->Font->Style << fsBold) : (cv->Font->Style >> fsBold);
@@ -754,8 +664,6 @@ void draw_OwnerTab(TCustomTabControl *Control, int idx, const TRect rc,
 	::DrawText(cv->Handle, titstr.c_str(), -1, &tt_rc, DT_LEFT);
 }
 
-//---------------------------------------------------------------------------
-//メニューセパレータの描画
 //---------------------------------------------------------------------------
 void draw_MenuSeparator(TCanvas *cv, TRect rc)
 {
@@ -771,8 +679,6 @@ void draw_MenuSeparator(TCanvas *cv, TRect rc)
 }
 
 //---------------------------------------------------------------------------
-//カラー設定リストの描画
-//---------------------------------------------------------------------------
 void draw_OptColorItem(TColor col, UnicodeString s, TCanvas *cv, TRect rc, bool hl)
 {
 	SetHighlight(cv, hl);
@@ -783,7 +689,7 @@ void draw_OptColorItem(TColor col, UnicodeString s, TCanvas *cv, TRect rc, bool 
 	int yp = rc.Top + (rc.Height() - cv->TextHeight("Q")) / 2;
 	cv->TextOut(rc.Left + 34, yp, s);
 
-	//カラー
+	//Color
 	TRect c_rc = rc;  c_rc.Right = c_rc.Left + 30;
 	cv->Brush->Color = col;
 	if (cv->Brush->Color!=col_None)
@@ -792,10 +698,10 @@ void draw_OptColorItem(TColor col, UnicodeString s, TCanvas *cv, TRect rc, bool 
 		cv->Brush->Color = get_PanelColor();
 		cv->FillRect(c_rc);
 		cv->Font->Color  = get_LabelColor();
-		cv->TextOut(rc.Left + 2, yp, _T("無効"));
+		cv->TextOut(rc.Left + 2, yp, _T("Invalid"));
 	}
 
-	//境界線
+	//Border
 	if (brk) {
 		cv->Pen->Color = IsDarkMode? dcl_BtnShadow : scl_BtnShadow;
 		cv->Pen->Style = psSolid;
@@ -804,8 +710,6 @@ void draw_OptColorItem(TColor col, UnicodeString s, TCanvas *cv, TRect rc, bool 
 		cv->LineTo(rc.Right + 1, rc.Top);
 	}
 }
-//---------------------------------------------------------------------------
-//フォント設定項目の描画
 //---------------------------------------------------------------------------
 void draw_OptFontItem(TFont *fnt, UnicodeString s, TCanvas *cv, TRect rc, bool hl)
 {
@@ -819,11 +723,11 @@ void draw_OptFontItem(TFont *fnt, UnicodeString s, TCanvas *cv, TRect rc, bool h
 	xp += fh*10;	//***
 
 	if (fnt) {
-		//サイズ
+		//Size
 		UnicodeString szstr = fnt->Size;
 		cv->TextOut(xp + cv->TextWidth(" 99") - cv->TextWidth(szstr), yp, szstr);
 		xp += fh*2;
-		//名前
+		//Name
 		int sz = cv->Font->Size;
 		cv->Font->Assign(fnt);
 		cv->Font->Size	 = sz;
@@ -833,18 +737,12 @@ void draw_OptFontItem(TFont *fnt, UnicodeString s, TCanvas *cv, TRect rc, bool h
 }
 
 //---------------------------------------------------------------------------
-//以下は擬似的コントロールのアクセラレータ処理に利用
-//---------------------------------------------------------------------------
-//TRadioGroup にフォーカス
-//---------------------------------------------------------------------------
 bool set_focus_RadioGroup(TRadioGroup *gp)
 {
 	if (!gp->Parent->Visible || !gp->Parent->Enabled || !gp->Visible || !gp->Enabled || gp->ItemIndex==-1) return false;
 	gp->Buttons[gp->ItemIndex]->SetFocus();
 	return true;
 }
-//---------------------------------------------------------------------------
-//TGroupBox にフォーカス
 //---------------------------------------------------------------------------
 bool set_focus_GroupBox(TGroupBox *gp)
 {
@@ -871,8 +769,6 @@ bool set_focus_GroupBox(TGroupBox *gp)
 	}
 	return true;
 }
-//---------------------------------------------------------------------------
-//チェックボックスの反転
 //---------------------------------------------------------------------------
 void invert_CheckBox(TCheckBox *cp)
 {

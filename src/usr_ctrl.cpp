@@ -2,11 +2,6 @@
 // Functions for Control												//
 //																		//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-#include <tchar.h>
-#include <memory>
-#include <algorithm>
 #include "usr_str.h"
 #include "usr_ctrl.h"
 
@@ -172,13 +167,13 @@ void draw_GridCursor(TStringGrid *gp, TRect &Rect, int ARow, TGridDrawState Stat
 //---------------------------------------------------------------------------
 void draw_Separator(
 	TCanvas *cv, TRect rc,
-	TColor bg)	//îwåiêF	(default = clNone : cv->Brush->Color)
+	TColor bg)	//Background color	(default = clNone : cv->Brush->Color)
 {
 	int yp = rc.Top + rc.Height()/2;
 	int x0 = rc.Left  + 4;
 	int x1 = rc.Right - 4;
 
-	int c = ColorToRGB((bg==clNone)? cv->Brush->Color : bg);
+	int c = ColorToRGB((bg==Graphics::clNone)? cv->Brush->Color : bg);
 	double v = ((GetRValue(c)*0.3 + GetGValue(c)*0.59 + GetBValue(c)*0.11) / 255.0);
 
 	TColor c0 = TColor((v>0.5)? RGB(0x77, 0x77, 0x77) : RGB(0x33, 0x33, 0x33));	//***
@@ -192,7 +187,7 @@ void draw_Separator(
 
 //---------------------------------------------------------------------------
 void str_to_GridHeadder(TStringGrid *gp, UnicodeString s,
-	UnicodeString sp)	//ãÊêÿÇË (default = "|")
+	UnicodeString sp)	//(default = "|")
 {
 	for (int i=0; i<gp->ColCount; i++) {
 		UnicodeString itm = get_tkn(s, sp);
@@ -375,7 +370,7 @@ void add_ComboBox_history(TComboBox *cp, UnicodeString kwd)
 		int idx = lp->IndexOf(kwd);
 		if (idx!=0) {
 			if (idx>0) lp->Delete(idx);
-			lp->Insert(0, kwd);	//êÊì™Ç…í«â¡
+			lp->Insert(0, kwd);
 		}
 		cp->Text = kwd;
 	}

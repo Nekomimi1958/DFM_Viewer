@@ -2,7 +2,6 @@
 // Other Functions														//
 //																		//
 //----------------------------------------------------------------------//
-#include <System.StrUtils.hpp>
 #include "usr_str.h"
 #include "UserFunc.h"
 
@@ -85,20 +84,18 @@ TColor SelectWorB(TColor col, float  rt)
 //---------------------------------------------------------------------------
 TColor AdjustColor(
 	TColor col,
-	int adj)		//0`255
+	int adj)		//0..255
 {
 	int cref = ColorToRGB(col);
 	int r = GetRValue(cref);
 	int g = GetGValue(cref);
 	int b = GetBValue(cref);
 
-	//–¾¨ˆÃ
 	if (GetLuminance(col)>0.5) {
 		r -= (adj * r / 255);  if (r<0) r = 0;
 		g -= (adj * g / 255);  if (g<0) g = 0;
 		b -= (adj * b / 255);  if (b<0) b = 0;
 	}
-	//ˆÃ¨–¾
 	else {
 		r += (adj * (255 - r) / 255);  if (r>255) r = 255;
 		g += (adj * (255 - g) / 255);  if (g>255) g = 255;

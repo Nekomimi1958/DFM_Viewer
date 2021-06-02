@@ -274,7 +274,7 @@ object DfmViewerForm: TDfmViewerForm
           Color = 2097152
           DefaultDrawing = False
           DoubleBuffered = False
-          FixedCols = 2
+          FixedCols = 0
           Options = [goFixedVertLine, goVertLine, goColSizing, goRowSelect, goThumbTracking]
           ParentDoubleBuffered = False
           TabOrder = 0
@@ -341,7 +341,7 @@ object DfmViewerForm: TDfmViewerForm
               EditLabel.Height = 13
               EditLabel.Caption = 'Filter'
               LabelPosition = lpLeft
-              TabOrder = 0
+              TabOrder = 1
               OnChange = FilterEdit2Change
             end
             object ClassComboBox: TComboBox
@@ -349,8 +349,8 @@ object DfmViewerForm: TDfmViewerForm
               Top = 8
               Width = 160
               Height = 21
-              DropDownCount = 12
-              TabOrder = 1
+              DropDownCount = 24
+              TabOrder = 0
               OnChange = ClassComboBoxChange
               OnClick = ClassComboBoxClick
             end
@@ -405,7 +405,7 @@ object DfmViewerForm: TDfmViewerForm
     object PopCopyValItem: TMenuItem
       Action = CopyValAction
     end
-    object N1: TMenuItem
+    object Sep_p_1: TMenuItem
       Caption = '-'
     end
     object Editsource1: TMenuItem
@@ -427,7 +427,7 @@ object DfmViewerForm: TDfmViewerForm
         Caption = '&Reload'
         OnClick = ReloadBtnClick
       end
-      object Sep_1: TMenuItem
+      object Sep_f1: TMenuItem
         Caption = '-'
       end
       object ExitItem: TMenuItem
@@ -444,7 +444,7 @@ object DfmViewerForm: TDfmViewerForm
       object CopyValueItem: TMenuItem
         Action = CopyValAction
       end
-      object N2: TMenuItem
+      object Sep_e1: TMenuItem
         Caption = '-'
       end
       object EditSrcItem: TMenuItem

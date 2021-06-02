@@ -2,11 +2,6 @@
 // File Operation (Support path of 260 characters or more)				//
 //																		//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-#include <tchar.h>
-#include <winioctl.h>
-#include <memory>
 #include "usr_str.h"
 #include "usr_file_ex.h"
 
@@ -53,10 +48,10 @@ UnicodeString get_actual_path(UnicodeString pnam)
 	pnam = cv_env_str(pnam);
 
 	if (contains_s(pnam, _T('$'))) {
-		pnam = REPLACE_TS(pnam, "$$", "\f");	//$$ を一時的に \f に変えておいて
+		pnam = REPLACE_TS(pnam, "$$", "\f");
 		pnam = ReplaceStr(pnam, "$X", ExcludeTrailingPathDelimiter(ExePath));
 		pnam = ReplaceStr(pnam, "$D", ExtractFileDrive(ExePath));
-		pnam = REPLACE_TS(pnam, "\f", "$");		//$$(\f) を $ に変換
+		pnam = REPLACE_TS(pnam, "\f", "$");
 	}
 	return pnam;
 }
@@ -123,8 +118,8 @@ UnicodeString to_relative_name(UnicodeString fnam)
 
 //---------------------------------------------------------------------------
 UnicodeString rel_to_absdir(
-	UnicodeString fnam,		//変換対象ファイル名
-	UnicodeString rnam)		//基準ディレクトリ名 (default = EmptyStr/ ExePath);
+	UnicodeString fnam,		//File name
+	UnicodeString rnam)		//Reference directory name (default = EmptyStr/ ExePath);
 {
 	if (fnam.IsEmpty() || !ExtractFileDrive(fnam).IsEmpty()) return fnam;
 
@@ -141,7 +136,7 @@ UnicodeString rel_to_absdir(
 
 //---------------------------------------------------------------------------
 bool is_same_file(UnicodeString fnam1, UnicodeString fnam2,
-	UnicodeString rnam)		//基準ファイル名 (default = EmptyStr/ ExePath);
+	UnicodeString rnam)		//Reference file name (default = EmptyStr/ ExePath);
 {
 	fnam1 = rel_to_absdir(exclude_quot(fnam1), rnam);
 	fnam2 = rel_to_absdir(exclude_quot(fnam2), rnam);
@@ -179,7 +174,6 @@ UnicodeString get_case_name(UnicodeString fnam)
 			FindClose(sr);
 		}
 		else {
-			//見つからなかったらそのまま返す
 			ret_str = fnam;
 			break;
 		}
@@ -226,7 +220,7 @@ bool drive_exists(UnicodeString drv)
 	drv = get_tkn(drv, ':');	if (drv.IsEmpty())	 return false;
 	int d_n = drv[1] - _T('A');	if (d_n<0 || d_n>25) return false;
 	DWORD d_flag = 0x00000001 << d_n;
-	DWORD d_bit = ::GetLogicalDrives();	//利用可能なドライブをビットマスク形式で取得
+	DWORD d_bit = ::GetLogicalDrives();
 	return (d_bit & d_flag);
 }
 
@@ -238,7 +232,7 @@ UINT get_drive_type(UnicodeString dnam)
 
 //---------------------------------------------------------------------------
 UnicodeString get_volume_info(UnicodeString dnam,
-	UnicodeString *fsys)	//[o] ファイルシステム
+	UnicodeString *fsys)	//[o] File system
 {
 	UnicodeString ret_str;
 	_TCHAR vol_nam[MAX_PATH];
@@ -337,7 +331,7 @@ UnicodeString get_parent_path(UnicodeString dnam)
 //---------------------------------------------------------------------------
 TStringDynArray split_path(
 	UnicodeString pnam,
-	UnicodeString dlmt)		//区切り	(default = "\\")
+	UnicodeString dlmt)		//Delimiter	(default = "\\")
 {
 	pnam = ExcludeTrailingPathDelimiter(pnam);
 	UnicodeString top_s = remove_top_s(pnam, dlmt + dlmt)? dlmt + dlmt : EmptyStr;
@@ -838,7 +832,7 @@ UnicodeString get_ReparsePointTarget(
 	UnicodeString pnam,
 	unsigned int &tag)	//[o] IO_REPARSE_TAG_MOUNT_POINT = Junction
 						//	  IO_REPARSE_TAG_SYMLINK	 = Symbolic Link
-						//	  0 = なし
+						//	  0 = none
 {
 	tag = 0;
 
@@ -859,11 +853,11 @@ UnicodeString get_ReparsePointTarget(
 		if (IsReparseTagMicrosoft(rp_buf->ReparseTag)) {
 			tag = rp_buf->ReparseTag;
 			switch (tag) {
-			case IO_REPARSE_TAG_MOUNT_POINT:	//ジャンクション
+			case IO_REPARSE_TAG_MOUNT_POINT:
 				rnam = (WCHAR*)rp_buf->MountPointReparseBuffer.PathBuffer
 						+ rp_buf->MountPointReparseBuffer.SubstituteNameOffset/sizeof(WCHAR);
 				break;
-			case IO_REPARSE_TAG_SYMLINK:		//シンボリックリンク
+			case IO_REPARSE_TAG_SYMLINK:
 				rnam = (WCHAR*)rp_buf->SymbolicLinkReparseBuffer.PathBuffer
 						+ rp_buf->SymbolicLinkReparseBuffer.SubstituteNameOffset/sizeof(WCHAR);
 				break;

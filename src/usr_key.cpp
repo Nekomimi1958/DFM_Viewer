@@ -2,10 +2,6 @@
 // Keyboard																//
 //																		//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-#include <memory>
-#include <System.StrUtils.hpp>
 #include "usr_key.h"
 
 //---------------------------------------------------------------------------
@@ -21,19 +17,19 @@ void make_KeyList(TStrings *lst)
 	std::unique_ptr<TStringList> klst(new TStringList());
 
 	UnicodeString itmbuf;
-	for (int i=0; i<26; i++) klst->Add(itmbuf.sprintf(_T("%c"), 'A' + i));	//英字
-	for (int i=0; i<10; i++) klst->Add(itmbuf.sprintf(_T("%c"), '0' + i));	//数字
+	for (int i=0; i<26; i++) klst->Add(itmbuf.sprintf(_T("%c"), 'A' + i));
+	for (int i=0; i<10; i++) klst->Add(itmbuf.sprintf(_T("%c"), '0' + i));
 
-	for (int i=0; i<12; i++) klst->Add(itmbuf.sprintf(_T("F%u"), i + 1));	//Fキー
+	for (int i=0; i<12; i++) klst->Add(itmbuf.sprintf(_T("F%u"), i + 1));
 	klst->AddStrings(
 		SplitString("Del|Ins|BkSp|Left|Right|UP|Down|PgUp|PgDn|Home|End|Pause|Tab|Esc|Enter|Space|App", "|"));
 
 	if (is_JpKeybd())
-		klst->AddStrings(SplitString("-|^|\\|@|[|;|:|]|,|.|/|＼", "|"));		//JP
+		klst->AddStrings(SplitString("-|^|\\|@|[|;|:|]|,|.|/|\uff1d", "|"));	//JP
 	else
-		klst->AddStrings(SplitString("`|-|＝|[|]|\\|;|'|,|.|/", "|"));		//US
+		klst->AddStrings(SplitString("`|-|\uff1d|[|]|\\|;|'|,|.|/", "|"));			//US
 
-	for (int i=0; i<10; i++) klst->Add(itmbuf.sprintf(_T("10Key_%u"), i));	//10キー
+	for (int i=0; i<10; i++) klst->Add(itmbuf.sprintf(_T("10Key_%u"), i));		//10 Key
 	klst->AddStrings(SplitString("10Key_*|10Key_+|10Key_-|10Key_/|10Key_.", "|"));
 
 	lst->Assign(klst.get());
@@ -87,7 +83,7 @@ bool is_JpKeybd()
 
 //---------------------------------------------------------------------------
 void ClearKeyBuff(
-	bool key_only)	//true = キーバッファのみクリア (default = false)
+	bool key_only)	//Clear only key buffer (default = false)
 {
 	MSG msg;
 	if (key_only) {
@@ -181,10 +177,10 @@ UnicodeString get_KeyStr(WORD Key)
 	case VK_OEM_5:		keystr = "\\";		break;
 	case VK_OEM_6:		keystr = "]";		break;
 	case VK_OEM_MINUS:  keystr = "-";		break;
-	case VK_OEM_PLUS:   keystr = is_JpKeybd()? ";" : "＝"; break;
+	case VK_OEM_PLUS:   keystr = is_JpKeybd()? ";" : "\uff1d"; break;
 	case VK_OEM_COMMA:  keystr = ",";		break;
 	case VK_OEM_PERIOD: keystr = ".";		break;
-	case VK_OEM_102:    keystr = "＼";		break;
+	case VK_OEM_102:    keystr = "\uFF3C";	break;
 
 	case VK_NUMPAD0:	keystr = "10Key_0";	break;
 	case VK_NUMPAD1:	keystr = "10Key_1";	break;

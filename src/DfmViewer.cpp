@@ -2,15 +2,10 @@
 // DFM Viewer															//
 //																		//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-
-#include <tchar.h>
-
-//---------------------------------------------------------------------------
 USEFORM("About.cpp", AboutBox);
 USEFORM("OptDlg.cpp", OptionDlg);
 USEFORM("Unit1.cpp", DfmViewerForm);
+
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int)
 {

@@ -2,9 +2,6 @@
 // DFM Viewer															//
 // Option Dialog														//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-
 #include "usr_str.h"
 #include "usr_ctrl.h"
 #include "usr_dark.h"
@@ -51,7 +48,7 @@ void __fastcall TOptionDlg::ColorListBoxDrawItem(TWinControl *Control, int Index
 {
 	TListBox *lp = (TListBox *)Control;
 	UnicodeString s = DfmViewerForm->ColorNameList->Values[lp->Items->Strings[Index]];
-	draw_OptColorItem((TColor)lp->Items->Objects[Index], s, lp->Canvas, Rect, State.Contains(odSelected));
+	draw_OptColorItem((TColor)(int)lp->Items->Objects[Index], s, lp->Canvas, Rect, State.Contains(odSelected));
 }
 //---------------------------------------------------------------------------
 void __fastcall TOptionDlg::FontComboBoxDrawItem(TWinControl *Control, int Index,
@@ -62,7 +59,7 @@ void __fastcall TOptionDlg::FontComboBoxDrawItem(TWinControl *Control, int Index
 }
 
 //---------------------------------------------------------------------------
-//エディタの指定
+//Editor
 //---------------------------------------------------------------------
 void __fastcall TOptionDlg::RefEditorBtnClick(TObject *Sender)
 {
@@ -73,7 +70,7 @@ void __fastcall TOptionDlg::RefEditorBtnClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-//フォント
+//Font
 //---------------------------------------------------------------------------
 void __fastcall TOptionDlg::RefFontBtnClick(TObject *Sender)
 {
@@ -95,14 +92,14 @@ void __fastcall TOptionDlg::RefFontBtnClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-//配色
+//Color
 //---------------------------------------------------------------------------
 void __fastcall TOptionDlg::RefColBtnClick(TObject *Sender)
 {
 	TListBox *lp = ColorListBox;
 	int idx = lp->ItemIndex;
 	if (idx!=-1) {
-		ColorDialog1->Color = (TColor)lp->Items->Objects[idx];
+		ColorDialog1->Color = (TColor)(int)lp->Items->Objects[idx];
 		if (ColorDialog1->Execute()) {
 			lp->Items->Objects[idx] = (TObject *)ColorDialog1->Color;
 			lp->Repaint();
@@ -110,8 +107,6 @@ void __fastcall TOptionDlg::RefColBtnClick(TObject *Sender)
 	}
 }
 
-//---------------------------------------------------------------------------
-//確定
 //---------------------------------------------------------------------------
 void __fastcall TOptionDlg::OKBtnClick(TObject *Sender)
 {

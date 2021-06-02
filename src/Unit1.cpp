@@ -2,13 +2,7 @@
 // DFM Viewer															//
 //																		//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-#include <tchar.h>
-#include <algorithm>
-#include <memory>
 #include <System.IOUtils.hpp>
-#include <RegularExpressions.hpp>
 #include <Vcl.FileCtrl.hpp>
 #include <Vcl.Clipbrd.hpp>
 
@@ -444,7 +438,7 @@ void __fastcall TDfmViewerForm::InitObjFile(UnicodeString fnam)
 		}
 
 		if (top_idx!=-1) {
-			ObjIndexList->AddObject(ObjItemList->Strings[top_idx], (TObject *)MAKELONG(top_idx, end_idx));
+			ObjIndexList->AddObject(ObjItemList->Strings[top_idx], (TObject *)(NativeInt)MAKELONG(top_idx, end_idx));
 		}
 
 		for (int i=top_idx; i<ObjItemList->Count; i++) {
@@ -711,9 +705,9 @@ void __fastcall TDfmViewerForm::ObjListBoxDrawItem(TWinControl *Control, int Ind
 		else {
 			UnicodeString cmk;
 			if		(SameStr(cls, "TCheckBox"))		cmk = _T("\u2611");
-			else if (SameStr(cls, "TRadioButton"))	cmk = "";
-			else if (SameStr(cls, "TTimer"))		cmk = "‚s";
-			else 									cmk = "@";
+			else if (SameStr(cls, "TRadioButton"))	cmk = _T("\u25ce");
+			else if (SameStr(cls, "TTimer"))		cmk = _T("\uff34");
+			else 									cmk = _T("\u3000");
 			cv->Font->Color = GetOptCol("fgCtrl");
 			cv->TextOut(xp, yp, cmk);
 		}
@@ -1179,7 +1173,7 @@ void __fastcall TDfmViewerForm::DrawControl(
 			UnicodeString c = GetCaptionStr(plst);
 			UnicodeString s = is_checkbox? (_T("\u2611") + cpt).c_str() :
 							  is_radiobtn? (_T("\u25C9") + cpt).c_str() :
-							   is_comobox? _T("¥") :
+							   is_comobox? _T("\u25bc") :
 				(is_label || is_labeledit || is_button || is_groupbox || is_radiobtn)?
 							 			   cpt.c_str() : _T("");
 			if (!s.IsEmpty()) {
@@ -1846,6 +1840,10 @@ void __fastcall TDfmViewerForm::EditSrcActionUpdate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TDfmViewerForm::AboutItemClick(TObject *Sender)
 {
+	unsigned mj, mi, bl;
+	int vno = GetProductVersion(Application->ExeName, mj, mi, bl)? mj*100 + mi*10 + bl : 0;
+	AboutBox->VersionLabel->Caption = UnicodeString().sprintf(_T("V%.2f (x86)"), vno/100.0);
+	AboutBox->Copyright->Caption  = "2021 by Nekomimi";
 	AboutBox->ShowModal();
 }
 

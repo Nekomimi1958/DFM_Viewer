@@ -67,14 +67,14 @@ __published:
 	TMenuItem *ExitItem;
 	TMenuItem *File1;
 	TMenuItem *Help1;
-	TMenuItem *N1;
-	TMenuItem *N2;
+	TMenuItem *Sep_p_1;
+	TMenuItem *Sep_e1;
 	TMenuItem *OptionsItem;
 	TMenuItem *PopCopyItem;
 	TMenuItem *PopCopyValItem;
 	TMenuItem *ReloadItem;
 	TMenuItem *SelectProjectDirectory1;
-	TMenuItem *Sep_1;
+	TMenuItem *Sep_f1;
 	TMenuItem *Setup1;
 	TPageControl *MainPageControl;
 	TPageControl *ViewPageControl;
@@ -195,13 +195,13 @@ private:
 
 	void __fastcall AddColorList(UnicodeString id, UnicodeString dsc, TColor def) 
 	{
-		ColorValList->AddObject(id, (TObject*)IniFile->ReadInteger("Color", id, def));
+		ColorValList->AddObject(id, (TObject*)(NativeInt)IniFile->ReadInteger("Color", id, def));
 		ColorNameList->Add(id + "=" + dsc);
 	}
 	TColor __fastcall GetOptCol(UnicodeString cnam)
 	{
 		int idx = ColorValList->IndexOf(cnam);
-		return (idx!=-1)? (TColor)ColorValList->Objects[idx] : clNone;
+		return (idx!=-1)? (TColor)(int)ColorValList->Objects[idx] : Graphics::clNone;
 	}
 
 	TStringList* __fastcall GetPropList(UnicodeString obj_nam)

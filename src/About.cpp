@@ -1,10 +1,6 @@
 //----------------------------------------------------------------------//
 // About Box															//
 //----------------------------------------------------------------------//
-#include <vcl.h>
-#pragma hdrstop
-#include <tchar.h>
-#include <memory>
 #include "usr_dark.h"
 #include "About.h"
 
@@ -20,14 +16,8 @@ __fastcall TAboutBox::TAboutBox(TComponent* AOwner)
 //---------------------------------------------------------------------------
 void __fastcall TAboutBox::FormCreate(TObject *Sender)
 {
-	unsigned mj, mi, bl;
-	int vno = GetProductVersion(Application->ExeName, mj, mi, bl)? mj*100 + mi*10 + bl : 0;
-	VersionLabel->Caption = UnicodeString().sprintf(_T("V%.2f (x86)"), vno/100.0);
-
 	ProductName->Font->Assign(Application->DefaultFont);
 	ProductName->Font->Size = 20;
-
-	Copyright->Caption  = "2019 by Nekomimi";
 	SupportURL->Caption = SUPPORT_URL;
 }
 //---------------------------------------------------------------------------

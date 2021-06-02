@@ -1,4 +1,4 @@
-﻿//----------------------------------------------------------------------//
+//----------------------------------------------------------------------//
 // Dark Mode															//
 //----------------------------------------------------------------------//
 #ifndef UsrDarkH
@@ -100,7 +100,6 @@ bool msgbox_Y_N(UnicodeString msg, UnicodeString tit = EmptyStr);
 TModalResult msgbox_Y_N_C(UnicodeString msg, UnicodeString tit = EmptyStr);
 bool msgbox_Sure(UnicodeString msg, bool ask = true, bool cente = false);
 bool msgbox_Sure(const _TCHAR *msg, bool ask, bool center = false);
-int  msgbox_SureAll(UnicodeString msg, bool &app_chk, bool center = false);
 
 //---------------------------------------------------------------------------
 #define UBMK_UP		1
